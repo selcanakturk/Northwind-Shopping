@@ -13,10 +13,6 @@ import {
   Input,
   InputGroup,
   InputGroupText,
-  Dropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
 } from "reactstrap";
 import CartSummary from "../cart/CartSummary.jsx";
 import * as categoryActions from "../../redux/actions/categoryActions.jsx";
@@ -33,10 +29,110 @@ class Navi extends Component {
     };
   }
 
+  getCategoryIcon = (categoryName) => {
+    const icons = {
+      "Ottomans": (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <line x1="3" y1="9" x2="21" y2="9" />
+        </svg>
+      ),
+      "Benches": (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="2" y="10" width="20" height="4" rx="1" />
+          <line x1="4" y1="10" x2="4" y2="20" />
+          <line x1="20" y1="10" x2="20" y2="20" />
+          <line x1="2" y1="14" x2="22" y2="14" />
+        </svg>
+      ),
+      "Sofas": (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M2 10h20v8H2z" />
+          <path d="M2 10l2-4h16l2 4" />
+          <line x1="6" y1="18" x2="6" y2="10" />
+          <line x1="18" y1="18" x2="18" y2="10" />
+        </svg>
+      ),
+      "Accent Chairs": (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M5 10h14v10H5z" />
+          <path d="M5 10l2-6h10l2 6" />
+          <line x1="7" y1="20" x2="7" y2="10" />
+          <line x1="17" y1="20" x2="17" y2="10" />
+        </svg>
+      ),
+      "Coffee Tables": (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="12" width="18" height="2" rx="1" />
+          <line x1="6" y1="12" x2="6" y2="20" />
+          <line x1="18" y1="12" x2="18" y2="20" />
+          <line x1="3" y1="13" x2="21" y2="13" />
+        </svg>
+      ),
+      "TV Stands": (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="2" y="14" width="20" height="6" rx="1" />
+          <rect x="4" y="4" width="16" height="10" rx="1" />
+        </svg>
+      ),
+      "Dining Tables": (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <ellipse cx="12" cy="12" rx="10" ry="2" />
+          <line x1="4" y1="12" x2="4" y2="20" />
+          <line x1="20" y1="12" x2="20" y2="20" />
+        </svg>
+      ),
+      "Beds": (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="2" y="8" width="20" height="12" rx="1" />
+          <line x1="2" y1="12" x2="22" y2="12" />
+          <path d="M6 8V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v4" />
+        </svg>
+      ),
+      "Outdoor": (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
+        </svg>
+      ),
+      "Decor": (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      ),
+      "Lighting": (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+        </svg>
+      ),
+    };
+    return icons[categoryName] || (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+      </svg>
+    );
+  };
+
   componentDidMount() {
     this.props.actions.getCategories();
     this.props.actions.getProducts();
+    document.addEventListener("click", this.handleClickOutside);
   }
+
+  componentWillUnmount() {
+    document.removeEventListener("click", this.handleClickOutside);
+  }
+
+  handleClickOutside = (event) => {
+    if (
+      this.state.categoryDropdownOpen &&
+      !event.target.closest(".category-dropdown-container")
+    ) {
+      this.setState({ categoryDropdownOpen: false });
+    }
+  };
 
   toggle = () => {
     this.setState({ isOpen: !this.state.isOpen });
@@ -45,6 +141,8 @@ class Navi extends Component {
   toggleCategoryDropdown = () => {
     this.setState({ categoryDropdownOpen: !this.state.categoryDropdownOpen });
   };
+
+
 
   handleSearchChange = (e) => {
     this.setState({ searchTerm: e.target.value });
@@ -72,6 +170,8 @@ class Navi extends Component {
     if (categoryIdOrName === "All") {
       this.props.actions.changeCategory({});
       this.props.actions.getProducts();
+      const event = new CustomEvent("categorySelected", { detail: { category: null } });
+      window.dispatchEvent(event);
       if (window.location.pathname !== "/") {
         window.location.href = "/";
       }
@@ -81,12 +181,14 @@ class Navi extends Component {
     if (categoryIdOrName === "Sale") {
       this.props.actions.changeCategory({});
       this.props.actions.getProducts();
+      const event = new CustomEvent("categorySelected", { detail: { category: "Sale" } });
+      window.dispatchEvent(event);
       if (window.location.pathname !== "/") {
         window.location.href = "/";
       } else {
         setTimeout(() => {
-          const event = new CustomEvent("filterSale", { detail: {} });
-          window.dispatchEvent(event);
+          const saleEvent = new CustomEvent("filterSale", { detail: {} });
+          window.dispatchEvent(saleEvent);
         }, 100);
       }
       return;
@@ -99,6 +201,8 @@ class Navi extends Component {
       if (category) {
         this.props.actions.changeCategory(category);
         this.props.actions.getProducts(categoryIdOrName);
+        const event = new CustomEvent("categorySelected", { detail: { category } });
+        window.dispatchEvent(event);
         if (window.location.pathname !== "/") {
           window.location.href = "/";
         }
@@ -165,9 +269,15 @@ class Navi extends Component {
               <NavbarBrand
                 tag={Link}
                 to="/"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   this.props.actions.changeCategory({});
                   this.props.actions.getProducts();
+                  const event = new CustomEvent("goToHomepage", { detail: {} });
+                  window.dispatchEvent(event);
+                  if (window.location.pathname !== "/") {
+                    window.location.href = "/";
+                  }
                 }}
                 style={{
                   color: "#1a1a1a",
@@ -441,11 +551,12 @@ class Navi extends Component {
               >
                 All
               </NavLink>
-              <Dropdown
-                isOpen={this.state.categoryDropdownOpen}
-                toggle={this.toggleCategoryDropdown}
-              >
-                <DropdownToggle
+              <div className="category-dropdown-container" style={{ position: "relative" }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    this.toggleCategoryDropdown();
+                  }}
                   style={{
                     background: "transparent",
                     border: "none",
@@ -455,54 +566,81 @@ class Navi extends Component {
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                     padding: "0",
-                    boxShadow: "none",
+                    cursor: "pointer",
                   }}
                 >
                   Categories
-                </DropdownToggle>
-                <DropdownMenu
-                  style={{
-                    borderRadius: "0",
-                    border: "1px solid #e5e7eb",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                    minWidth: "200px",
-                  }}
-                >
-                  {this.props.categories && this.props.categories.length > 0
-                    ? this.props.categories.map((category) => (
-                      <DropdownItem
-                        key={category.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          this.handleCategoryClick(category.id, e);
-                          this.toggleCategoryDropdown();
-                        }}
-                        style={{
-                          color:
-                            this.props.currentCategory.id === category.id
-                              ? "#1a1a1a"
-                              : "#6b7280",
-                          fontWeight:
-                            this.props.currentCategory.id === category.id
-                              ? "500"
-                              : "400",
-                          fontSize: "0.875rem",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          padding: "0.75rem 1rem",
-                          cursor: "pointer",
-                          backgroundColor:
-                            this.props.currentCategory.id === category.id
-                              ? "#f0f0f0"
-                              : "transparent",
-                        }}
-                      >
-                        {category.categoryName}
-                      </DropdownItem>
-                    ))
-                    : null}
-                </DropdownMenu>
-              </Dropdown>
+                </button>
+                {this.state.categoryDropdownOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: "0",
+                      marginTop: "0.5rem",
+                      background: "#ffffff",
+                      border: "1px solid #e5e7eb",
+                      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                      minWidth: "600px",
+                      maxWidth: "90vw",
+                      padding: "1.5rem",
+                      zIndex: 1000,
+                    }}
+                    className="category-dropdown-menu"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {this.props.categories && this.props.categories.length > 0
+                      ? this.props.categories.map((category) => (
+                        <div
+                          key={category.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            this.handleCategoryClick(category.id, e);
+                            this.toggleCategoryDropdown();
+                          }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.75rem",
+                            color:
+                              this.props.currentCategory.id === category.id
+                                ? "#1a1a1a"
+                                : "#6b7280",
+                            fontWeight:
+                              this.props.currentCategory.id === category.id
+                                ? "500"
+                                : "400",
+                            fontSize: "0.875rem",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            padding: "0.75rem 1rem",
+                            cursor: "pointer",
+                            backgroundColor:
+                              this.props.currentCategory.id === category.id
+                                ? "#f9fafb"
+                                : "transparent",
+                            borderRadius: "4px",
+                            transition: "all 0.2s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (this.props.currentCategory.id === category.id) return;
+                            e.target.style.backgroundColor = "#f9fafb";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (this.props.currentCategory.id === category.id) return;
+                            e.target.style.backgroundColor = "transparent";
+                          }}
+                        >
+                          <span style={{ display: "flex", alignItems: "center", minWidth: "20px" }}>
+                            {this.getCategoryIcon(category.categoryName)}
+                          </span>
+                          {category.categoryName}
+                        </div>
+                      ))
+                      : null}
+                  </div>
+                )}
+              </div>
               <NavLink
                 tag={Link}
                 to="/"
