@@ -48,6 +48,21 @@ class ProductDetail extends Component {
     return products.find((p) => p.id === productId);
   };
 
+  getSimilarProducts = () => {
+    const product = this.getProductById();
+    if (!product || !product.categoryId) return [];
+
+    const productsData = this.props.products?.data || this.props.products || [];
+    const products = Array.isArray(productsData) ? productsData : [];
+    const productId = parseInt(this.props.productId, 10);
+
+    const similarProducts = products.filter(
+      (p) => p.categoryId === product.categoryId && p.id !== productId
+    );
+
+    return similarProducts.slice(0, 4);
+  };
+
   render() {
     const product = this.getProductById();
     const isLoading = this.props.products?.loading || false;
@@ -557,6 +572,188 @@ class ProductDetail extends Component {
             </div>
           </Col>
         </Row>
+
+        {this.getSimilarProducts().length > 0 && (
+          <div style={{ marginTop: "4rem", paddingTop: "3rem", borderTop: "1px solid #e5e7eb" }}>
+            <div style={{ marginBottom: "2rem" }}>
+              <h2
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: "300",
+                  letterSpacing: "1px",
+                  color: "#1a1a1a",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Similar Products
+              </h2>
+              <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+                You might also like these products from the same category
+              </p>
+            </div>
+
+            <Row className="g-4">
+              {this.getSimilarProducts().map((similarProduct) => (
+                <Col key={similarProduct.id} md="3" sm="6" xs="12">
+                  <div
+                    className="product-card"
+                    style={{
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <Link
+                      to={"/product/" + similarProduct.id}
+                      style={{
+                        textDecoration: "none",
+                        color: "inherit",
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "100%",
+                      }}
+                    >
+                      <div
+                        className="product-card-image"
+                        style={{
+                          position: "relative",
+                          width: "100%",
+                          aspectRatio: "1",
+                          backgroundColor: "#f9fafb",
+                          border: "1px solid #e5e7eb",
+                          overflow: "hidden",
+                          marginBottom: "1rem",
+                        }}
+                      >
+                        {similarProduct.imageUrl ? (
+                          <img
+                            src={similarProduct.imageUrl}
+                            alt={similarProduct.productName}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: "block",
+                            }}
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                              const placeholder = e.target.parentElement.querySelector(".image-placeholder");
+                              if (placeholder) {
+                                placeholder.style.display = "flex";
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className="image-placeholder"
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            display: similarProduct.imageUrl ? "none" : "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#9ca3af",
+                            fontSize: "0.875rem",
+                            fontWeight: "400",
+                            backgroundColor: "#f0f0f0",
+                          }}
+                        >
+                          Product Image
+                        </div>
+                      </div>
+                      <div className="product-card-body" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                        <h3
+                          className="product-card-title"
+                          style={{
+                            fontSize: "1rem",
+                            fontWeight: "500",
+                            color: "#1a1a1a",
+                            marginBottom: "0.5rem",
+                            lineHeight: "1.4",
+                          }}
+                        >
+                          {similarProduct.productName}
+                        </h3>
+                        <div
+                          className="product-card-price"
+                          style={{
+                            fontSize: "1.125rem",
+                            fontWeight: "600",
+                            color: "#1a1a1a",
+                            marginTop: "auto",
+                          }}
+                        >
+                          ${parseFloat(similarProduct.unitPrice || 0).toFixed(2)}
+                        </div>
+                      </div>
+                    </Link>
+                    <div style={{ padding: "0 1.5rem 1.5rem 1.5rem", marginTop: "1rem" }}>
+                      <span
+                        className={`product-card-stock ${
+                          similarProduct.unitsInStock > 20
+                            ? "in-stock"
+                            : similarProduct.unitsInStock > 0
+                            ? "low-stock"
+                            : "out-of-stock"
+                        }`}
+                        style={{
+                          fontSize: "0.75rem",
+                          fontWeight: "500",
+                          display: "block",
+                          marginBottom: "0.75rem",
+                        }}
+                      >
+                        {similarProduct.unitsInStock > 20
+                          ? "In Stock"
+                          : similarProduct.unitsInStock > 0
+                          ? "Low Stock"
+                          : "Out of Stock"}
+                      </span>
+                      <Button
+                        className="btn-modern w-100"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          this.addToCart(similarProduct);
+                        }}
+                        disabled={similarProduct.unitsInStock === 0}
+                        style={{
+                          width: "100%",
+                          padding: "0.75rem 1rem",
+                          backgroundColor:
+                            similarProduct.unitsInStock > 0 ? "#1a1a1a" : "#9ca3af",
+                          color: "#ffffff",
+                          border: "none",
+                          fontSize: "0.875rem",
+                          fontWeight: "600",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                          cursor: similarProduct.unitsInStock > 0 ? "pointer" : "not-allowed",
+                          transition: "background-color 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (similarProduct.unitsInStock > 0) {
+                            e.target.style.backgroundColor = "#000000";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (similarProduct.unitsInStock > 0) {
+                            e.target.style.backgroundColor = "#1a1a1a";
+                          }
+                        }}
+                      >
+                        {similarProduct.unitsInStock > 0 ? "Add to Cart" : "Out of Stock"}
+                      </Button>
+                    </div>
+                  </div>
+                </Col>
+              ))}
+            </Row>
+          </div>
+        )}
       </div>
     );
   }

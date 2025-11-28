@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button, Form, FormGroup, Label, Input, Row, Col } from "reactstrap";
 import { Link } from "react-router-dom";
 
@@ -9,6 +9,78 @@ export default function ProductDetailForm({
   onSave,
   errors,
 }) {
+  const [imagePreview, setImagePreview] = useState(
+    product.imageUrl || null
+  );
+  const [imageFile, setImageFile] = useState(null);
+  const [imageSource, setImageSource] = useState(
+    product.imageUrl && !product.imageUrl.startsWith("data:") ? "url" : "upload"
+  );
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (product.imageUrl) {
+      setImagePreview(product.imageUrl);
+      if (product.imageUrl.startsWith("data:")) {
+        setImageSource("upload");
+      } else if (product.imageUrl.startsWith("http")) {
+        setImageSource("url");
+      }
+    } else {
+      setImagePreview(null);
+    }
+  }, [product.imageUrl]);
+
+  const handleImageSourceChange = (source) => {
+    setImageSource(source);
+    setImagePreview(null);
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    if (source === "url") {
+      onChange({ target: { name: "imageUrl", value: "" } });
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image size must be less than 5MB");
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        alert("Please select an image file");
+        return;
+      }
+
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setImagePreview(base64String);
+        onChange({ target: { name: "imageUrl", value: base64String } });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageUrlChange = (e) => {
+    onChange(e);
+    setImagePreview(e.target.value);
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    onChange({ target: { name: "imageUrl", value: "" } });
+  };
+
   return (
     <div style={{ padding: "3rem 0" }}>
       <div style={{ marginBottom: "2rem" }}>
@@ -355,7 +427,6 @@ export default function ProductDetailForm({
             <Col md="12">
               <FormGroup>
                 <Label
-                  for="imageUrl"
                   style={{
                     fontSize: "0.875rem",
                     fontWeight: "600",
@@ -365,40 +436,177 @@ export default function ProductDetailForm({
                     letterSpacing: "0.5px",
                   }}
                 >
-                  Image URL
+                  Product Image
                 </Label>
-                <Input
-                  type="url"
-                  name="imageUrl"
-                  id="imageUrl"
-                  value={product.imageUrl || ""}
-                  onChange={onChange}
-                  style={{
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "0",
-                    padding: "0.875rem 1rem",
-                    fontSize: "0.875rem",
-                    transition: "border-color 0.2s ease",
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#1a1a1a";
-                    e.target.style.boxShadow = "0 0 0 1px #1a1a1a";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#e5e7eb";
-                    e.target.style.boxShadow = "none";
-                  }}
-                  placeholder="https://example.com/image.jpg"
-                />
+
                 <div
                   style={{
-                    color: "#6b7280",
-                    fontSize: "0.75rem",
-                    marginTop: "0.5rem",
+                    display: "flex",
+                    gap: "1rem",
+                    marginBottom: "1rem",
                   }}
                 >
-                  Optional: Enter a URL for the product image
+                  <button
+                    type="button"
+                    onClick={() => handleImageSourceChange("upload")}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      border:
+                        imageSource === "upload"
+                          ? "2px solid #1a1a1a"
+                          : "1px solid #e5e7eb",
+                      backgroundColor:
+                        imageSource === "upload" ? "#f9fafb" : "#ffffff",
+                      color: "#1a1a1a",
+                      fontSize: "0.875rem",
+                      fontWeight: imageSource === "upload" ? "600" : "400",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    Upload Image
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleImageSourceChange("url")}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      border:
+                        imageSource === "url"
+                          ? "2px solid #1a1a1a"
+                          : "1px solid #e5e7eb",
+                      backgroundColor:
+                        imageSource === "url" ? "#f9fafb" : "#ffffff",
+                      color: "#1a1a1a",
+                      fontSize: "0.875rem",
+                      fontWeight: imageSource === "url" ? "600" : "400",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    Image URL
+                  </button>
                 </div>
+
+                {imageSource === "upload" ? (
+                  <div>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      ref={fileInputRef}
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "0",
+                        padding: "0.875rem 1rem",
+                        fontSize: "0.875rem",
+                        marginBottom: "1rem",
+                      }}
+                    />
+                    <div
+                      style={{
+                        color: "#6b7280",
+                        fontSize: "0.75rem",
+                        marginTop: "0.5rem",
+                      }}
+                    >
+                      Maximum file size: 5MB. Supported formats: JPG, PNG, GIF
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <Input
+                      type="url"
+                      name="imageUrl"
+                      id="imageUrl"
+                      value={product.imageUrl || ""}
+                      onChange={handleImageUrlChange}
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "0",
+                        padding: "0.875rem 1rem",
+                        fontSize: "0.875rem",
+                        transition: "border-color 0.2s ease",
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = "#1a1a1a";
+                        e.target.style.boxShadow = "0 0 0 1px #1a1a1a";
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = "#e5e7eb";
+                        e.target.style.boxShadow = "none";
+                      }}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                    <div
+                      style={{
+                        color: "#6b7280",
+                        fontSize: "0.75rem",
+                        marginTop: "0.5rem",
+                      }}
+                    >
+                      Enter a URL for the product image
+                    </div>
+                  </div>
+                )}
+
+                {imagePreview && (
+                  <div
+                    style={{
+                      marginTop: "1.5rem",
+                      position: "relative",
+                      display: "inline-block",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "300px",
+                        height: "300px",
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      style={{
+                        position: "absolute",
+                        top: "0.5rem",
+                        right: "0.5rem",
+                        background: "rgba(0, 0, 0, 0.7)",
+                        color: "#ffffff",
+                        border: "none",
+                        borderRadius: "50%",
+                        width: "32px",
+                        height: "32px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        fontSize: "1.25rem",
+                        transition: "background 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => (e.target.style.background = "rgba(0, 0, 0, 0.9)")}
+                      onMouseLeave={(e) => (e.target.style.background = "rgba(0, 0, 0, 0.7)")}
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
               </FormGroup>
             </Col>
           </Row>
