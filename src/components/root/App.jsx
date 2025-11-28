@@ -7,6 +7,7 @@ import CartDetail from "../cart/CartDetail.jsx";
 import AddOrUpdateProduct from "../products/AddOrUpdateProduct.jsx";
 import ProductDetail from "../products/ProductDetail.jsx";
 import Favorites from "../favorites/Favorites.jsx";
+import Checkout from "../checkout/Checkout.jsx";
 import NotFound from "../common/NotFound.jsx";
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path="/product" element={<Dashboard />} />
           <Route path="/product/:productId" element={<ProductDetail />} />
           <Route path="/cart" element={<CartDetail />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route
             path="/saveproduct/:productId"

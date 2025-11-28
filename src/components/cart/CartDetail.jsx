@@ -254,8 +254,10 @@ class CartDetail extends Component {
                   ${total.toFixed(2)}
                 </span>
               </div>
-              <div
+              <Link
+                to="/checkout"
                 style={{
+                  display: "block",
                   width: "100%",
                   padding: "1rem",
                   backgroundColor: "#1a1a1a",
@@ -267,12 +269,13 @@ class CartDetail extends Component {
                   letterSpacing: "1px",
                   cursor: "pointer",
                   transition: "background-color 0.2s ease",
+                  textDecoration: "none",
                 }}
                 onMouseEnter={(e) => (e.target.style.backgroundColor = "#000000")}
                 onMouseLeave={(e) => (e.target.style.backgroundColor = "#1a1a1a")}
               >
                 Proceed to Checkout
-              </div>
+              </Link>
             </div>
           </div>
         ) : (

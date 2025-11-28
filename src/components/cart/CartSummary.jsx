@@ -43,29 +43,29 @@ class CartSummary extends Component {
               background: "transparent",
               border: "none",
               padding: "0.5rem",
-              fontSize: "1.25rem",
+              fontSize: "0.875rem",
               display: "flex",
               alignItems: "center",
-              position: "relative",
+              gap: "0.5rem",
+              textTransform: "uppercase",
+              letterSpacing: "1px",
             }}
           >
-            <span style={{ fontSize: "1.25rem", fontWeight: "300" }}>Cart</span>
+            <span style={{ fontSize: "0.875rem", fontWeight: "400" }}>Cart</span>
             {this.props.cart && this.props.cart.length > 0 && (
               <Badge
                 style={{
                   background: "#1a1a1a",
                   color: "white",
-                  position: "absolute",
-                  top: "0",
-                  right: "0",
-                  borderRadius: "50%",
-                  width: "18px",
-                  height: "18px",
-                  fontSize: "0.625rem",
+                  borderRadius: "0",
+                  minWidth: "24px",
+                  height: "24px",
+                  fontSize: "0.75rem",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  padding: "0",
+                  padding: "0 0.5rem",
+                  fontWeight: "600",
                 }}
               >
                 {this.props.cart.reduce(
