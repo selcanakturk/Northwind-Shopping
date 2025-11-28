@@ -8,6 +8,8 @@ import AddOrUpdateProduct from "../products/AddOrUpdateProduct.jsx";
 import ProductDetail from "../products/ProductDetail.jsx";
 import Favorites from "../favorites/Favorites.jsx";
 import Checkout from "../checkout/Checkout.jsx";
+import Login from "../auth/Login.jsx";
+import Account from "../account/Account.jsx";
 import NotFound from "../common/NotFound.jsx";
 
 function App() {
@@ -28,6 +30,8 @@ function App() {
           <Route path="/cart" element={<CartDetail />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/favorites" element={<Favorites />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/account" element={<Account />} />
           <Route
             path="/saveproduct/:productId"
             element={<AddOrUpdateProduct />}

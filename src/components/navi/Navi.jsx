@@ -17,6 +17,7 @@ import {
 import CartSummary from "../cart/CartSummary.jsx";
 import * as categoryActions from "../../redux/actions/categoryActions.jsx";
 import * as productActions from "../../redux/actions/productActions.jsx";
+import * as authActions from "../../redux/actions/authActions.jsx";
 import { Badge } from "reactstrap";
 
 class Navi extends Component {
@@ -118,6 +119,7 @@ class Navi extends Component {
   componentDidMount() {
     this.props.actions.getCategories();
     this.props.actions.getProducts();
+    this.props.actions.checkAuth();
     document.addEventListener("click", this.handleClickOutside);
   }
 
@@ -231,27 +233,46 @@ class Navi extends Component {
                   Northwind
                 </NavLink>
               </div>
-              <div className="d-flex gap-3">
-                <Link
-                  to="/"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert("Free shipping on orders over $100!");
-                  }}
-                  style={{ color: "#ffffff", textDecoration: "none" }}
-                >
-                  Free Shipping
-                </Link>
-                <Link
-                  to="/"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert("Store Locator - Coming Soon!");
-                  }}
-                  style={{ color: "#ffffff", textDecoration: "none" }}
-                >
-                  Store Locator
-                </Link>
+              <div className="d-flex gap-3 align-items-center">
+                {this.props.auth.isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/account"
+                      style={{
+                        color: "#ffffff",
+                        textDecoration: "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      My Account
+                    </Link>
+                    <Link
+                      to="/"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        this.props.actions.logout();
+                      }}
+                      style={{
+                        color: "#ffffff",
+                        textDecoration: "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Logout
+                    </Link>
+                  </>
+                ) : (
+                  <Link
+                    to="/login"
+                    style={{
+                      color: "#ffffff",
+                      textDecoration: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Sign In
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -415,48 +436,51 @@ class Navi extends Component {
               </NavbarToggler>
               <Collapse isOpen={this.state.isOpen} navbar>
                 <Nav className="ms-auto d-flex align-items-center" navbar>
-                  <NavItem className="d-none d-lg-block">
-                    <NavLink
-                      tag={Link}
-                      to="/saveproduct"
-                      style={{
-                        color: "#1a1a1a",
-                        fontWeight: "400",
-                        fontSize: "0.875rem",
-                        textDecoration: "none",
-                        marginRight: "1.5rem",
-                        textTransform: "uppercase",
-                        letterSpacing: "1px",
-                        transition: "opacity 0.2s ease",
-                        position: "relative",
-                        paddingBottom: "0.25rem",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.opacity = "0.6";
-                        const underline = e.target.querySelector(".nav-underline");
-                        if (underline) underline.style.width = "100%";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.opacity = "1";
-                        const underline = e.target.querySelector(".nav-underline");
-                        if (underline) underline.style.width = "0";
-                      }}
-                    >
-                      Add Product
-                      <span
-                        className="nav-underline"
-                        style={{
-                          position: "absolute",
-                          bottom: "0",
-                          left: "0",
-                          height: "1px",
-                          width: "0",
-                          backgroundColor: "#1a1a1a",
-                          transition: "width 0.3s ease",
-                        }}
-                      />
-                    </NavLink>
-                  </NavItem>
+                  {this.props.auth.isAuthenticated &&
+                    this.props.auth.user?.role === "admin" && (
+                      <NavItem className="d-none d-lg-block">
+                        <NavLink
+                          tag={Link}
+                          to="/saveproduct"
+                          style={{
+                            color: "#1a1a1a",
+                            fontWeight: "400",
+                            fontSize: "0.875rem",
+                            textDecoration: "none",
+                            marginRight: "1.5rem",
+                            textTransform: "uppercase",
+                            letterSpacing: "1px",
+                            transition: "opacity 0.2s ease",
+                            position: "relative",
+                            paddingBottom: "0.25rem",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.opacity = "0.6";
+                            const underline = e.target.querySelector(".nav-underline");
+                            if (underline) underline.style.width = "100%";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.opacity = "1";
+                            const underline = e.target.querySelector(".nav-underline");
+                            if (underline) underline.style.width = "0";
+                          }}
+                        >
+                          Add Product
+                          <span
+                            className="nav-underline"
+                            style={{
+                              position: "absolute",
+                              bottom: "0",
+                              left: "0",
+                              height: "1px",
+                              width: "0",
+                              backgroundColor: "#1a1a1a",
+                              transition: "width 0.3s ease",
+                            }}
+                          />
+                        </NavLink>
+                      </NavItem>
+                    )}
                   <NavItem>
                     <NavLink
                       tag={Link}
@@ -670,6 +694,7 @@ function mapStateToProps(state) {
     currentCategory: state.changeCategoryReducer,
     categories: state.categoryListReducer,
     favorites: state.favoriteReducer,
+    auth: state.authReducer,
   };
 }
 
@@ -685,6 +710,8 @@ function mapDispatchToProps(dispatch) {
         dispatch
       ),
       getProducts: bindActionCreators(productActions.getProducts, dispatch),
+      checkAuth: bindActionCreators(authActions.checkAuth, dispatch),
+      logout: bindActionCreators(authActions.logout, dispatch),
     },
   };
 }

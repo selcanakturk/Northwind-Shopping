@@ -5,6 +5,7 @@ import productListReducer from "./productListReducer";
 import cartReducer from "./cartReducer";
 import saveProductReducer from "./saveProductReducer";
 import favoriteReducer from "./favoriteReducer.jsx";
+import authReducer from "./authReducer.jsx";
 
 const rootReducer = combineReducers({
   changeCategoryReducer,
@@ -13,6 +14,7 @@ const rootReducer = combineReducers({
   cartReducer,
   saveProductReducer,
   favoriteReducer,
+  authReducer,
 });
 
 export default rootReducer;
