@@ -10,6 +10,7 @@ import Favorites from "../favorites/Favorites.jsx";
 import Checkout from "../checkout/Checkout.jsx";
 import Login from "../auth/Login.jsx";
 import Account from "../account/Account.jsx";
+import CouponManagement from "../admin/CouponManagement.jsx";
 import NotFound from "../common/NotFound.jsx";
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/login" element={<Login />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/admin/coupons" element={<CouponManagement />} />
           <Route
             path="/saveproduct/:productId"
             element={<AddOrUpdateProduct />}

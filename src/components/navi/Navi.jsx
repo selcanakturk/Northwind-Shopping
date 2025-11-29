@@ -438,48 +438,92 @@ class Navi extends Component {
                 <Nav className="ms-auto d-flex align-items-center" navbar>
                   {this.props.auth.isAuthenticated &&
                     this.props.auth.user?.role === "admin" && (
-                      <NavItem className="d-none d-lg-block">
-                        <NavLink
-                          tag={Link}
-                          to="/saveproduct"
-                          style={{
-                            color: "#1a1a1a",
-                            fontWeight: "400",
-                            fontSize: "0.875rem",
-                            textDecoration: "none",
-                            marginRight: "1.5rem",
-                            textTransform: "uppercase",
-                            letterSpacing: "1px",
-                            transition: "opacity 0.2s ease",
-                            position: "relative",
-                            paddingBottom: "0.25rem",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.opacity = "0.6";
-                            const underline = e.target.querySelector(".nav-underline");
-                            if (underline) underline.style.width = "100%";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.opacity = "1";
-                            const underline = e.target.querySelector(".nav-underline");
-                            if (underline) underline.style.width = "0";
-                          }}
-                        >
-                          Add Product
-                          <span
-                            className="nav-underline"
+                      <>
+                        <NavItem className="d-none d-lg-block">
+                          <NavLink
+                            tag={Link}
+                            to="/saveproduct"
                             style={{
-                              position: "absolute",
-                              bottom: "0",
-                              left: "0",
-                              height: "1px",
-                              width: "0",
-                              backgroundColor: "#1a1a1a",
-                              transition: "width 0.3s ease",
+                              color: "#1a1a1a",
+                              fontWeight: "400",
+                              fontSize: "0.875rem",
+                              textDecoration: "none",
+                              marginRight: "1.5rem",
+                              textTransform: "uppercase",
+                              letterSpacing: "1px",
+                              transition: "opacity 0.2s ease",
+                              position: "relative",
+                              paddingBottom: "0.25rem",
                             }}
-                          />
-                        </NavLink>
-                      </NavItem>
+                            onMouseEnter={(e) => {
+                              e.target.style.opacity = "0.6";
+                              const underline = e.target.querySelector(".nav-underline");
+                              if (underline) underline.style.width = "100%";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.opacity = "1";
+                              const underline = e.target.querySelector(".nav-underline");
+                              if (underline) underline.style.width = "0";
+                            }}
+                          >
+                            Add Product
+                            <span
+                              className="nav-underline"
+                              style={{
+                                position: "absolute",
+                                bottom: "0",
+                                left: "0",
+                                height: "1px",
+                                width: "0",
+                                backgroundColor: "#1a1a1a",
+                                transition: "width 0.3s ease",
+                              }}
+                            />
+                          </NavLink>
+                        </NavItem>
+                        <NavItem className="d-none d-lg-block">
+                          <NavLink
+                            tag={Link}
+                            to="/admin/coupons"
+                            style={{
+                              color: "#1a1a1a",
+                              fontWeight: "400",
+                              fontSize: "0.875rem",
+                              textDecoration: "none",
+                              marginRight: "1.5rem",
+                              textTransform: "uppercase",
+                              letterSpacing: "1px",
+                              transition: "opacity 0.2s ease",
+                              position: "relative",
+                              paddingBottom: "0.25rem",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.opacity = "0.6";
+                              const underline = e.target.querySelector(".nav-underline");
+                              if (underline) underline.style.width = "100%";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.opacity = "1";
+                              const underline = e.target.querySelector(".nav-underline");
+                              if (underline) underline.style.width = "0";
+                            }}
+                          >
+                            Coupons
+                            <span
+                              className="nav-underline"
+                              style={{
+                                position: "absolute",
+                                bottom: "0",
+                                left: "0",
+                                height: "1px",
+                                width: "0",
+                                backgroundColor: "#1a1a1a",
+                                transition: "width 0.3s ease",
+                              }}
+                            />
+                          </NavLink>
+                        </NavItem>
+                      </>
                     )}
                   <NavItem>
                     <NavLink

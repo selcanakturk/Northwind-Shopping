@@ -1,8 +1,10 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
 import { Link } from "react-router-dom";
-import { Row, Col, Input, Button } from "reactstrap";
+import { Row, Col, Input, Button, InputGroup, InputGroupText } from "reactstrap";
 import alertify from "alertifyjs";
+import * as couponActions from "../../redux/actions/couponActions.jsx";
 
 class Checkout extends Component {
   constructor(props) {
@@ -23,8 +25,32 @@ class Checkout extends Component {
         cvv: "",
       },
       errors: {},
+      couponCode: "",
     };
   }
+
+  componentDidMount() {
+    this.props.actions.getCoupons();
+  }
+
+  handleCouponChange = (e) => {
+    this.setState({ couponCode: e.target.value.toUpperCase() });
+  };
+
+  handleApplyCoupon = () => {
+    const { couponCode } = this.state;
+    const { cart } = this.props;
+    const subtotal = cart.reduce(
+      (total, item) => total + item.product.unitPrice * item.quantity,
+      0
+    );
+    this.props.actions.applyCoupon(couponCode, subtotal);
+  };
+
+  handleRemoveCoupon = () => {
+    this.props.actions.removeCoupon();
+    this.setState({ couponCode: "" });
+  };
 
   handleChange = (e) => {
     const { name, value } = e.target;
@@ -72,8 +98,8 @@ class Checkout extends Component {
   };
 
   render() {
-    const { cart } = this.props;
-    const { formData, errors } = this.state;
+    const { cart, coupon } = this.props;
+    const { formData, errors, couponCode } = this.state;
 
     if (!cart || cart.length === 0) {
       return (
@@ -109,8 +135,9 @@ class Checkout extends Component {
       0
     );
     const shipping = subtotal > 100 ? 0 : 15;
-    const tax = subtotal * 0.1;
-    const total = subtotal + shipping + tax;
+    const tax = (subtotal - (coupon?.discountAmount || 0)) * 0.1;
+    const discount = coupon?.discountAmount || 0;
+    const total = subtotal - discount + shipping + tax;
 
     return (
       <div style={{ padding: "3rem 0" }}>
@@ -652,6 +679,39 @@ class Checkout extends Component {
                     ${subtotal.toFixed(2)}
                   </span>
                 </div>
+                {coupon?.appliedCoupon && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: "0.75rem",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div>
+                      <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                        Discount ({coupon.appliedCoupon.code})
+                      </span>
+                      <button
+                        onClick={this.handleRemoveCoupon}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "#ef4444",
+                          fontSize: "0.75rem",
+                          marginLeft: "0.5rem",
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <span style={{ fontSize: "0.875rem", color: "#10b981", fontWeight: "600" }}>
+                      -${discount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 <div
                   style={{
                     display: "flex",
@@ -677,6 +737,55 @@ class Checkout extends Component {
                   </span>
                 </div>
               </div>
+
+              {!coupon?.appliedCoupon && (
+                <div
+                  style={{
+                    borderTop: "1px solid #e5e7eb",
+                    paddingTop: "1rem",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "0.875rem",
+                      fontWeight: "500",
+                      color: "#1a1a1a",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    Coupon Code
+                  </label>
+                  <InputGroup>
+                    <Input
+                      type="text"
+                      value={couponCode}
+                      onChange={this.handleCouponChange}
+                      placeholder="Enter coupon code"
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "0",
+                        padding: "0.75rem",
+                        fontSize: "0.875rem",
+                        textTransform: "uppercase",
+                      }}
+                    />
+                    <InputGroupText
+                      style={{
+                        background: "#1a1a1a",
+                        color: "#ffffff",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "0.75rem 1rem",
+                      }}
+                      onClick={this.handleApplyCoupon}
+                    >
+                      Apply
+                    </InputGroupText>
+                  </InputGroup>
+                </div>
+              )}
 
               <div
                 style={{
@@ -751,8 +860,19 @@ class Checkout extends Component {
 function mapStateToProps(state) {
   return {
     cart: state.cartReducer,
+    coupon: state.couponReducer,
   };
 }
 
-export default connect(mapStateToProps)(Checkout);
+function mapDispatchToProps(dispatch) {
+  return {
+    actions: {
+      getCoupons: bindActionCreators(couponActions.getCoupons, dispatch),
+      applyCoupon: bindActionCreators(couponActions.applyCoupon, dispatch),
+      removeCoupon: bindActionCreators(couponActions.removeCoupon, dispatch),
+    },
+  };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Checkout);
 
