@@ -864,45 +864,63 @@ class Account extends Component {
                     {this.getUserOrders()
                       .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
                       .map((order) => (
-                        <div
+                        <Link
                           key={order.id}
+                          to={`/order/${order.id}`}
                           style={{
-                            border: "1px solid #e5e7eb",
-                            padding: "1.5rem",
-                            marginBottom: "1.5rem",
-                            backgroundColor: "#ffffff",
+                            textDecoration: "none",
+                            color: "inherit",
+                            display: "block",
                           }}
                         >
                           <div
                             style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "flex-start",
-                              marginBottom: "1rem",
-                              flexWrap: "wrap",
-                              gap: "1rem",
+                              border: "1px solid #e5e7eb",
+                              padding: "1.5rem",
+                              marginBottom: "1.5rem",
+                              backgroundColor: "#ffffff",
+                              transition: "all 0.2s ease",
+                              cursor: "pointer",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = "#1a1a1a";
+                              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = "#e5e7eb";
+                              e.currentTarget.style.boxShadow = "none";
                             }}
                           >
-                            <div>
-                              <div
-                                style={{
-                                  fontSize: "0.875rem",
-                                  fontWeight: "600",
-                                  color: "#1a1a1a",
-                                  marginBottom: "0.25rem",
-                                }}
-                              >
-                                Order #{order.orderNumber}
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
+                                marginBottom: "1rem",
+                                flexWrap: "wrap",
+                                gap: "1rem",
+                              }}
+                            >
+                              <div>
+                                <div
+                                  style={{
+                                    fontSize: "0.875rem",
+                                    fontWeight: "600",
+                                    color: "#1a1a1a",
+                                    marginBottom: "0.25rem",
+                                  }}
+                                >
+                                  Order #{order.orderNumber}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    color: "#6b7280",
+                                  }}
+                                >
+                                  {this.formatDate(order.orderDate)}
+                                </div>
                               </div>
-                              <div
-                                style={{
-                                  fontSize: "0.75rem",
-                                  color: "#6b7280",
-                                }}
-                              >
-                                {this.formatDate(order.orderDate)}
-                              </div>
-                            </div>
                             <div style={{ textAlign: "right" }}>
                               <div
                                 style={{
@@ -985,20 +1003,21 @@ class Account extends Component {
                             </div>
                           </div>
 
-                          {order.couponCode && (
-                            <div
-                              style={{
-                                marginTop: "0.75rem",
-                                paddingTop: "0.75rem",
-                                borderTop: "1px solid #f3f4f6",
-                                fontSize: "0.75rem",
-                                color: "#6b7280",
-                              }}
-                            >
-                              Coupon applied: <strong>{order.couponCode}</strong>
-                            </div>
-                          )}
-                        </div>
+                              {order.couponCode && (
+                                <div
+                                  style={{
+                                    marginTop: "0.75rem",
+                                    paddingTop: "0.75rem",
+                                    borderTop: "1px solid #f3f4f6",
+                                    fontSize: "0.75rem",
+                                    color: "#6b7280",
+                                  }}
+                                >
+                                  Coupon applied: <strong>{order.couponCode}</strong>
+                                </div>
+                              )}
+                          </div>
+                        </Link>
                       ))}
                   </div>
                 ) : (
