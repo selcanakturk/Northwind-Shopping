@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { bindActionCreators } from "redux";
 import { Row, Col, Button, Input, Form, FormGroup, Label } from "reactstrap";
 import * as authActions from "../../redux/actions/authActions.jsx";
+import * as orderActions from "../../redux/actions/orderActions.jsx";
 import alertify from "alertifyjs";
 
 function AccountWrapper(props) {
@@ -35,6 +36,7 @@ class Account extends Component {
       this.props.navigate("/login");
     } else {
       this.loadUserProfile();
+      this.props.actions.getOrders(this.props.auth.user.id);
     }
   }
 
@@ -167,6 +169,25 @@ class Account extends Component {
     }
     const username = this.props.auth.user?.username || "";
     return username.substring(0, 2).toUpperCase();
+  };
+
+  formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  getUserOrders = () => {
+    const { orders } = this.props;
+    const { user } = this.props.auth;
+    if (!user || !orders.orders) return [];
+    return orders.orders.filter((order) => order.userId === user.id);
   };
 
   render() {
@@ -838,37 +859,181 @@ class Account extends Component {
                   Order History
                 </h3>
 
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "3rem 2rem",
-                    color: "#6b7280",
-                  }}
-                >
-                  <p style={{ fontSize: "0.875rem", margin: 0 }}>
-                    No orders yet. Start shopping to see your order history here.
-                  </p>
-                  <Link
-                    to="/"
+                {this.getUserOrders().length > 0 ? (
+                  <div>
+                    {this.getUserOrders()
+                      .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
+                      .map((order) => (
+                        <div
+                          key={order.id}
+                          style={{
+                            border: "1px solid #e5e7eb",
+                            padding: "1.5rem",
+                            marginBottom: "1.5rem",
+                            backgroundColor: "#ffffff",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "flex-start",
+                              marginBottom: "1rem",
+                              flexWrap: "wrap",
+                              gap: "1rem",
+                            }}
+                          >
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: "0.875rem",
+                                  fontWeight: "600",
+                                  color: "#1a1a1a",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                Order #{order.orderNumber}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "0.75rem",
+                                  color: "#6b7280",
+                                }}
+                              >
+                                {this.formatDate(order.orderDate)}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: "right" }}>
+                              <div
+                                style={{
+                                  fontSize: "0.875rem",
+                                  fontWeight: "600",
+                                  color: "#1a1a1a",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                ${order.pricing.total.toFixed(2)}
+                              </div>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  padding: "0.25rem 0.75rem",
+                                  backgroundColor:
+                                    order.status === "pending"
+                                      ? "#fef3c7"
+                                      : order.status === "shipped"
+                                      ? "#dbeafe"
+                                      : order.status === "delivered"
+                                      ? "#d1fae5"
+                                      : "#f3f4f6",
+                                  color:
+                                    order.status === "pending"
+                                      ? "#92400e"
+                                      : order.status === "shipped"
+                                      ? "#1e40af"
+                                      : order.status === "delivered"
+                                      ? "#065f46"
+                                      : "#6b7280",
+                                  fontSize: "0.75rem",
+                                  fontWeight: "600",
+                                  textTransform: "uppercase",
+                                  letterSpacing: "0.5px",
+                                }}
+                              >
+                                {order.status}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              borderTop: "1px solid #e5e7eb",
+                              paddingTop: "1rem",
+                              marginTop: "1rem",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: "0.875rem",
+                                fontWeight: "500",
+                                color: "#1a1a1a",
+                                marginBottom: "0.75rem",
+                              }}
+                            >
+                              Items ({order.items.length})
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                              {order.items.map((item, index) => (
+                                <div
+                                  key={index}
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    padding: "0.5rem 0",
+                                    fontSize: "0.875rem",
+                                    color: "#6b7280",
+                                  }}
+                                >
+                                  <span>
+                                    {item.productName} x {item.quantity}
+                                  </span>
+                                  <span style={{ fontWeight: "500", color: "#1a1a1a" }}>
+                                    ${item.totalPrice.toFixed(2)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {order.couponCode && (
+                            <div
+                              style={{
+                                marginTop: "0.75rem",
+                                paddingTop: "0.75rem",
+                                borderTop: "1px solid #f3f4f6",
+                                fontSize: "0.75rem",
+                                color: "#6b7280",
+                              }}
+                            >
+                              Coupon applied: <strong>{order.couponCode}</strong>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <div
                     style={{
-                      display: "inline-block",
-                      marginTop: "1.5rem",
-                      padding: "0.75rem 2rem",
-                      backgroundColor: "#1a1a1a",
-                      color: "#ffffff",
-                      textDecoration: "none",
-                      fontSize: "0.875rem",
-                      fontWeight: "600",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                      transition: "background-color 0.2s ease",
+                      textAlign: "center",
+                      padding: "3rem 2rem",
+                      color: "#6b7280",
                     }}
-                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#000000")}
-                    onMouseLeave={(e) => (e.target.style.backgroundColor = "#1a1a1a")}
                   >
-                    Start Shopping
-                  </Link>
-                </div>
+                    <p style={{ fontSize: "0.875rem", margin: 0 }}>
+                      No orders yet. Start shopping to see your order history here.
+                    </p>
+                    <Link
+                      to="/"
+                      style={{
+                        display: "inline-block",
+                        marginTop: "1.5rem",
+                        padding: "0.75rem 2rem",
+                        backgroundColor: "#1a1a1a",
+                        color: "#ffffff",
+                        textDecoration: "none",
+                        fontSize: "0.875rem",
+                        fontWeight: "600",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        transition: "background-color 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => (e.target.style.backgroundColor = "#000000")}
+                      onMouseLeave={(e) => (e.target.style.backgroundColor = "#1a1a1a")}
+                    >
+                      Start Shopping
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
           </Col>
@@ -881,6 +1046,7 @@ class Account extends Component {
 function mapStateToProps(state) {
   return {
     auth: state.authReducer,
+    orders: state.orderReducer,
   };
 }
 
@@ -888,6 +1054,7 @@ function mapDispatchToProps(dispatch) {
   return {
     actions: {
       logout: bindActionCreators(authActions.logout, dispatch),
+      getOrders: bindActionCreators(orderActions.getOrders, dispatch),
     },
   };
 }
