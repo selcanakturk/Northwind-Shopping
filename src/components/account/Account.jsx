@@ -5,6 +5,7 @@ import { bindActionCreators } from "redux";
 import { Row, Col, Button, Input, Form, FormGroup, Label } from "reactstrap";
 import * as authActions from "../../redux/actions/authActions.jsx";
 import * as orderActions from "../../redux/actions/orderActions.jsx";
+import * as productActions from "../../redux/actions/productActions.jsx";
 import alertify from "alertifyjs";
 
 function AccountWrapper(props) {
@@ -16,7 +17,7 @@ class Account extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      activeTab: "profile",
+      activeTab: this.props.auth?.user?.role === "admin" ? "dashboard" : "profile",
       firstName: "",
       lastName: "",
       phone: "",
@@ -36,7 +37,14 @@ class Account extends Component {
       this.props.navigate("/login");
     } else {
       this.loadUserProfile();
-      this.props.actions.getOrders(this.props.auth.user.id);
+      // Only load orders for non-admin users
+      if (this.props.auth.user && this.props.auth.user.role !== "admin") {
+        this.props.actions.getOrders(this.props.auth.user.id);
+      } else if (this.props.auth.user && this.props.auth.user.role === "admin") {
+        // Load all orders and products for admin statistics
+        this.props.actions.getOrders();
+        this.props.actions.getProducts();
+      }
     }
   }
 
@@ -190,6 +198,33 @@ class Account extends Component {
     return orders.orders.filter((order) => order.userId === user.id);
   };
 
+  getAdminStatistics = () => {
+    const { orders, products } = this.props;
+
+    const allOrders = orders?.orders || [];
+    const allProducts = products?.data || products || [];
+
+    let allUsers = [];
+    try {
+      allUsers = JSON.parse(localStorage.getItem("users") || "[]");
+    } catch (err) {
+      console.error("Users yüklenirken hata:", err);
+    }
+
+    const totalRevenue = allOrders.reduce((sum, o) => sum + (o.pricing?.total || 0), 0);
+    const pendingOrders = allOrders.filter(o => o.status === "pending").length;
+    const lowStockProducts = allProducts.filter(p => p.unitsInStock > 0 && p.unitsInStock <= 10).length;
+
+    return {
+      totalOrders: allOrders.length,
+      totalRevenue,
+      pendingOrders,
+      totalProducts: allProducts.length,
+      totalUsers: allUsers.length,
+      lowStockProducts,
+    };
+  };
+
   render() {
     const { auth } = this.props;
     const { activeTab } = this.state;
@@ -212,10 +247,12 @@ class Account extends Component {
               marginBottom: "0.5rem",
             }}
           >
-            My Account
+            {user && user.role === "admin" ? "Admin Account" : "My Account"}
           </h1>
           <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>
-            Manage your account information and preferences
+            {user && user.role === "admin"
+              ? "Manage your admin account and access admin panel"
+              : "Manage your account information and preferences"}
           </p>
         </div>
 
@@ -272,8 +309,8 @@ class Account extends Component {
                 style={{
                   display: "inline-block",
                   padding: "0.25rem 0.75rem",
-                  backgroundColor: "#f9fafb",
-                  color: "#1a1a1a",
+                  backgroundColor: user?.role === "admin" ? "#1a1a1a" : "#f9fafb",
+                  color: user?.role === "admin" ? "#ffffff" : "#1a1a1a",
                   fontSize: "0.75rem",
                   fontWeight: "600",
                   textTransform: "uppercase",
@@ -298,87 +335,271 @@ class Account extends Component {
                   gap: "0.5rem",
                 }}
               >
-                <button
-                  onClick={() => this.setState({ activeTab: "profile" })}
-                  style={{
-                    padding: "0.75rem 1rem",
-                    border: "none",
-                    background:
-                      activeTab === "profile" ? "#f9fafb" : "transparent",
-                    color: "#1a1a1a",
-                    textAlign: "left",
-                    fontSize: "0.875rem",
-                    fontWeight: activeTab === "profile" ? "500" : "400",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  Profile
-                </button>
-                <button
-                  onClick={() => this.setState({ activeTab: "contact" })}
-                  style={{
-                    padding: "0.75rem 1rem",
-                    border: "none",
-                    background:
-                      activeTab === "contact" ? "#f9fafb" : "transparent",
-                    color: "#1a1a1a",
-                    textAlign: "left",
-                    fontSize: "0.875rem",
-                    fontWeight: activeTab === "contact" ? "500" : "400",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  Contact Information
-                </button>
-                <button
-                  onClick={() => this.setState({ activeTab: "password" })}
-                  style={{
-                    padding: "0.75rem 1rem",
-                    border: "none",
-                    background:
-                      activeTab === "password" ? "#f9fafb" : "transparent",
-                    color: "#1a1a1a",
-                    textAlign: "left",
-                    fontSize: "0.875rem",
-                    fontWeight: activeTab === "password" ? "500" : "400",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  Change Password
-                </button>
-                <button
-                  onClick={() => this.setState({ activeTab: "orders" })}
-                  style={{
-                    padding: "0.75rem 1rem",
-                    border: "none",
-                    background:
-                      activeTab === "orders" ? "#f9fafb" : "transparent",
-                    color: "#1a1a1a",
-                    textAlign: "left",
-                    fontSize: "0.875rem",
-                    fontWeight: activeTab === "orders" ? "500" : "400",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  Order History
-                </button>
+                {user && user.role === "admin" ? (
+                  <>
+                    <button
+                      onClick={() => this.setState({ activeTab: "dashboard" })}
+                      style={{
+                        padding: "0.75rem 1rem",
+                        border: "none",
+                        background:
+                          activeTab === "dashboard" ? "#f9fafb" : "transparent",
+                        color: "#1a1a1a",
+                        textAlign: "left",
+                        fontSize: "0.875rem",
+                        fontWeight: activeTab === "dashboard" ? "500" : "400",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      Dashboard
+                    </button>
+                    <button
+                      onClick={() => this.setState({ activeTab: "profile" })}
+                      style={{
+                        padding: "0.75rem 1rem",
+                        border: "none",
+                        background:
+                          activeTab === "profile" ? "#f9fafb" : "transparent",
+                        color: "#1a1a1a",
+                        textAlign: "left",
+                        fontSize: "0.875rem",
+                        fontWeight: activeTab === "profile" ? "500" : "400",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      Profile
+                    </button>
+                    <button
+                      onClick={() => this.setState({ activeTab: "password" })}
+                      style={{
+                        padding: "0.75rem 1rem",
+                        border: "none",
+                        background:
+                          activeTab === "password" ? "#f9fafb" : "transparent",
+                        color: "#1a1a1a",
+                        textAlign: "left",
+                        fontSize: "0.875rem",
+                        fontWeight: activeTab === "password" ? "500" : "400",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      Change Password
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => this.setState({ activeTab: "profile" })}
+                      style={{
+                        padding: "0.75rem 1rem",
+                        border: "none",
+                        background:
+                          activeTab === "profile" ? "#f9fafb" : "transparent",
+                        color: "#1a1a1a",
+                        textAlign: "left",
+                        fontSize: "0.875rem",
+                        fontWeight: activeTab === "profile" ? "500" : "400",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      Profile
+                    </button>
+                    <button
+                      onClick={() => this.setState({ activeTab: "contact" })}
+                      style={{
+                        padding: "0.75rem 1rem",
+                        border: "none",
+                        background:
+                          activeTab === "contact" ? "#f9fafb" : "transparent",
+                        color: "#1a1a1a",
+                        textAlign: "left",
+                        fontSize: "0.875rem",
+                        fontWeight: activeTab === "contact" ? "500" : "400",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      Contact Information
+                    </button>
+                    <button
+                      onClick={() => this.setState({ activeTab: "password" })}
+                      style={{
+                        padding: "0.75rem 1rem",
+                        border: "none",
+                        background:
+                          activeTab === "password" ? "#f9fafb" : "transparent",
+                        color: "#1a1a1a",
+                        textAlign: "left",
+                        fontSize: "0.875rem",
+                        fontWeight: activeTab === "password" ? "500" : "400",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      Change Password
+                    </button>
+                    <button
+                      onClick={() => this.setState({ activeTab: "orders" })}
+                      style={{
+                        padding: "0.75rem 1rem",
+                        border: "none",
+                        background:
+                          activeTab === "orders" ? "#f9fafb" : "transparent",
+                        color: "#1a1a1a",
+                        textAlign: "left",
+                        fontSize: "0.875rem",
+                        fontWeight: activeTab === "orders" ? "500" : "400",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      Order History
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </Col>
 
           <Col md="8">
+            {activeTab === "dashboard" && user && user.role === "admin" && (
+              <div style={{ marginBottom: "2rem" }}>
+                <h3
+                  style={{
+                    fontSize: "1rem",
+                    fontWeight: "600",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    color: "#1a1a1a",
+                    marginBottom: "1.5rem",
+                  }}
+                >
+                  Dashboard Overview
+                </h3>
+                <Row className="g-3">
+                  <Col md="4" sm="6">
+                    <div
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#ffffff",
+                        padding: "1.5rem",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: "2rem", fontWeight: "600", color: "#1a1a1a", marginBottom: "0.5rem" }}>
+                        {this.getAdminStatistics().totalOrders}
+                      </div>
+                      <div style={{ fontSize: "0.875rem", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        Total Orders
+                      </div>
+                    </div>
+                  </Col>
+                  <Col md="4" sm="6">
+                    <div
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#ffffff",
+                        padding: "1.5rem",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: "2rem", fontWeight: "600", color: "#1a1a1a", marginBottom: "0.5rem" }}>
+                        ${this.getAdminStatistics().totalRevenue.toFixed(2)}
+                      </div>
+                      <div style={{ fontSize: "0.875rem", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        Total Revenue
+                      </div>
+                    </div>
+                  </Col>
+                  <Col md="4" sm="6">
+                    <div
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#ffffff",
+                        padding: "1.5rem",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: "2rem", fontWeight: "600", color: "#92400e", marginBottom: "0.5rem" }}>
+                        {this.getAdminStatistics().pendingOrders}
+                      </div>
+                      <div style={{ fontSize: "0.875rem", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        Pending Orders
+                      </div>
+                    </div>
+                  </Col>
+                  <Col md="4" sm="6">
+                    <div
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#ffffff",
+                        padding: "1.5rem",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: "2rem", fontWeight: "600", color: "#1a1a1a", marginBottom: "0.5rem" }}>
+                        {this.getAdminStatistics().totalProducts}
+                      </div>
+                      <div style={{ fontSize: "0.875rem", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        Total Products
+                      </div>
+                    </div>
+                  </Col>
+                  <Col md="4" sm="6">
+                    <div
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#ffffff",
+                        padding: "1.5rem",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: "2rem", fontWeight: "600", color: "#1a1a1a", marginBottom: "0.5rem" }}>
+                        {this.getAdminStatistics().totalUsers}
+                      </div>
+                      <div style={{ fontSize: "0.875rem", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        Total Users
+                      </div>
+                    </div>
+                  </Col>
+                  <Col md="4" sm="6">
+                    <div
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#ffffff",
+                        padding: "1.5rem",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: "2rem", fontWeight: "600", color: "#ef4444", marginBottom: "0.5rem" }}>
+                        {this.getAdminStatistics().lowStockProducts}
+                      </div>
+                      <div style={{ fontSize: "0.875rem", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        Low Stock Products
+                      </div>
+                    </div>
+                  </Col>
+                </Row>
+              </div>
+            )}
             {activeTab === "profile" && (
               <div
                 style={{
@@ -525,7 +746,7 @@ class Account extends Component {
               </div>
             )}
 
-            {activeTab === "contact" && (
+            {activeTab === "contact" && user && user.role !== "admin" && (
               <div
                 style={{
                   border: "1px solid #e5e7eb",
@@ -838,7 +1059,7 @@ class Account extends Component {
               </div>
             )}
 
-            {activeTab === "orders" && (
+            {activeTab === "orders" && user && user.role !== "admin" && (
               <div
                 style={{
                   border: "1px solid #e5e7eb",
@@ -1066,6 +1287,7 @@ function mapStateToProps(state) {
   return {
     auth: state.authReducer,
     orders: state.orderReducer,
+    products: state.productListReducer,
   };
 }
 
@@ -1074,6 +1296,7 @@ function mapDispatchToProps(dispatch) {
     actions: {
       logout: bindActionCreators(authActions.logout, dispatch),
       getOrders: bindActionCreators(orderActions.getOrders, dispatch),
+      getProducts: bindActionCreators(productActions.getProducts, dispatch),
     },
   };
 }
