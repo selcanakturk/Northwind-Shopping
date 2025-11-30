@@ -39,6 +39,24 @@ export default function orderReducer(state = initialState.orders, action) {
         ...state,
         orders: newOrdersUpdate,
       };
+    case actionTypes.DELETE_ORDER_SUCCESS:
+      const newOrdersDelete = currentOrders.filter(
+        (order) => order && order.id !== action.payload
+      );
+      localStorage.setItem("orders", JSON.stringify(newOrdersDelete));
+      return {
+        ...state,
+        orders: newOrdersDelete,
+      };
+    case actionTypes.ADD_ORDER_NOTE_SUCCESS:
+      const newOrdersNote = currentOrders.map((order) =>
+        order && order.id === action.payload.id ? action.payload : order
+      );
+      localStorage.setItem("orders", JSON.stringify(newOrdersNote));
+      return {
+        ...state,
+        orders: newOrdersNote,
+      };
     default:
       return {
         ...state,

@@ -72,8 +72,83 @@ export function updateOrderStatus(orderId, newStatus) {
     saveOrdersToStorage(updatedOrders);
     const updatedOrder = updatedOrders.find((order) => order.id === orderId);
     dispatch({ type: actionTypes.UPDATE_ORDER_STATUS_SUCCESS, payload: updatedOrder });
-    alertify.success(`Order status updated to ${newStatus}.`);
+    alertify.success(`Order ${updatedOrder.orderNumber || updatedOrder.id} status updated to ${newStatus}.`);
     return updatedOrder;
+  };
+}
+
+export function deleteOrderSuccess(orderId) {
+  return { type: actionTypes.DELETE_ORDER_SUCCESS, payload: orderId };
+}
+
+export function deleteOrder(orderId) {
+  return (dispatch) => {
+    const orders = loadOrdersFromStorage();
+    const order = orders.find((o) => o.id === orderId);
+    
+    if (!order) {
+      alertify.error("Order not found.");
+      return;
+    }
+
+    const updatedOrders = orders.filter((order) => order.id !== orderId);
+    saveOrdersToStorage(updatedOrders);
+    dispatch(deleteOrderSuccess(orderId));
+    alertify.success(`Order ${order.orderNumber || orderId} deleted successfully.`);
+  };
+}
+
+export function addOrderNoteSuccess(order) {
+  return { type: actionTypes.ADD_ORDER_NOTE_SUCCESS, payload: order };
+}
+
+export function addOrderNote(orderId, note) {
+  return (dispatch) => {
+    const orders = loadOrdersFromStorage();
+    const order = orders.find((o) => o.id === orderId);
+    
+    if (!order) {
+      alertify.error("Order not found.");
+      return;
+    }
+
+    const notes = order.notes || [];
+    const newNote = {
+      id: Date.now(),
+      text: note,
+      createdAt: new Date().toISOString(),
+      createdBy: "admin",
+    };
+
+    const updatedOrder = {
+      ...order,
+      notes: [...notes, newNote],
+    };
+
+    const updatedOrders = orders.map((o) => (o.id === orderId ? updatedOrder : o));
+    saveOrdersToStorage(updatedOrders);
+    dispatch(addOrderNoteSuccess(updatedOrder));
+    alertify.success("Note added successfully.");
+    return updatedOrder;
+  };
+}
+
+export function bulkUpdateOrderStatus(orderIds, newStatus) {
+  return (dispatch) => {
+    const orders = loadOrdersFromStorage();
+    const updatedOrders = orders.map((order) =>
+      orderIds.includes(order.id) ? { ...order, status: newStatus } : order
+    );
+    saveOrdersToStorage(updatedOrders);
+    
+    orderIds.forEach((orderId) => {
+      const updatedOrder = updatedOrders.find((order) => order.id === orderId);
+      if (updatedOrder) {
+        dispatch({ type: actionTypes.UPDATE_ORDER_STATUS_SUCCESS, payload: updatedOrder });
+      }
+    });
+    
+    alertify.success(`${orderIds.length} order(s) status updated to ${newStatus}.`);
   };
 }
 
