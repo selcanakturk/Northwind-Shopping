@@ -54,4 +54,7 @@ export default {
     discountAmount: 0,
   },
   reviews: {},
+  orders: {
+    orders: [],
+  },
 };

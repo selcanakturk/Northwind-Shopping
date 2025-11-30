@@ -1,10 +1,12 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Row, Col, Input, Button, InputGroup, InputGroupText } from "reactstrap";
 import alertify from "alertifyjs";
 import * as couponActions from "../../redux/actions/couponActions.jsx";
+import * as orderActions from "../../redux/actions/orderActions.jsx";
+import * as cartActions from "../../redux/actions/cartActions.jsx";
 
 class Checkout extends Component {
   constructor(props) {
@@ -90,10 +92,69 @@ class Checkout extends Component {
   handleSubmit = (e) => {
     e.preventDefault();
     if (this.validate()) {
-      alertify.success("Order placed successfully!");
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1500);
+      const { cart, coupon, auth } = this.props;
+      const { formData } = this.state;
+
+      if (!auth.isAuthenticated) {
+        alertify.error("Please login to place an order.");
+        return;
+      }
+
+      const subtotal = cart.reduce(
+        (total, item) => total + item.product.unitPrice * item.quantity,
+        0
+      );
+      const shipping = subtotal > 100 ? 0 : 15;
+      const tax = (subtotal - (coupon?.discountAmount || 0)) * 0.1;
+      const discount = coupon?.discountAmount || 0;
+      const total = subtotal - discount + shipping + tax;
+
+      const orderData = {
+        items: cart.map((item) => ({
+          productId: item.product.id,
+          productName: item.product.productName,
+          quantity: item.quantity,
+          unitPrice: item.product.unitPrice,
+          totalPrice: item.product.unitPrice * item.quantity,
+        })),
+        shippingInfo: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          zipCode: formData.zipCode,
+          country: formData.country,
+        },
+        paymentInfo: {
+          cardNumber: formData.cardNumber.slice(-4),
+          cardName: formData.cardName,
+        },
+        pricing: {
+          subtotal,
+          discount,
+          shipping,
+          tax,
+          total,
+        },
+        couponCode: coupon?.appliedCoupon?.code || null,
+      };
+
+      const order = this.props.actions.createOrder(orderData);
+
+      if (order) {
+        cart.forEach((item) => {
+          this.props.actions.removeFromCart(item.product);
+        });
+
+        this.props.actions.removeCoupon();
+
+        alertify.success(`Order #${order.orderNumber} placed successfully!`);
+        setTimeout(() => {
+          this.props.navigate("/");
+        }, 2000);
+      }
     }
   };
 
@@ -857,10 +918,16 @@ class Checkout extends Component {
   }
 }
 
+function CheckoutWrapper(props) {
+  const navigate = useNavigate();
+  return <Checkout {...props} navigate={navigate} />;
+}
+
 function mapStateToProps(state) {
   return {
     cart: state.cartReducer,
     coupon: state.couponReducer,
+    auth: state.authReducer,
   };
 }
 
@@ -870,9 +937,11 @@ function mapDispatchToProps(dispatch) {
       getCoupons: bindActionCreators(couponActions.getCoupons, dispatch),
       applyCoupon: bindActionCreators(couponActions.applyCoupon, dispatch),
       removeCoupon: bindActionCreators(couponActions.removeCoupon, dispatch),
+      createOrder: bindActionCreators(orderActions.createOrder, dispatch),
+      removeFromCart: bindActionCreators(cartActions.removeFromCart, dispatch),
     },
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Checkout);
+export default connect(mapStateToProps, mapDispatchToProps)(CheckoutWrapper);
 
