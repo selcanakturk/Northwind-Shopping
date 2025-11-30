@@ -581,209 +581,215 @@ class Navi extends Component {
                         </NavItem>
                       </>
                     )}
-                  <NavItem>
-                    <NavLink
-                      tag={Link}
-                      to="/favorites"
-                      style={{
-                        color: "#1a1a1a",
-                        fontWeight: "400",
-                        fontSize: "0.875rem",
-                        textDecoration: "none",
-                        marginRight: "1.5rem",
-                        textTransform: "uppercase",
-                        letterSpacing: "1px",
-                        transition: "opacity 0.2s ease",
-                        position: "relative",
-                        paddingBottom: "0.25rem",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.opacity = "0.6";
-                        const underline = e.target.querySelector(".nav-underline");
-                        if (underline) underline.style.width = "100%";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.opacity = "1";
-                        const underline = e.target.querySelector(".nav-underline");
-                        if (underline) underline.style.width = "0";
-                      }}
-                    >
-                      Favorites
-                      {this.props.favorites && this.props.favorites.length > 0 && (
-                        <Badge
+                  {!this.props.auth.isAuthenticated || this.props.auth.user?.role !== "admin" ? (
+                    <>
+                      <NavItem>
+                        <NavLink
+                          tag={Link}
+                          to="/favorites"
                           style={{
-                            background: "#1a1a1a",
-                            color: "white",
-                            borderRadius: "50%",
-                            width: "18px",
-                            height: "18px",
-                            fontSize: "0.625rem",
+                            color: "#1a1a1a",
+                            fontWeight: "400",
+                            fontSize: "0.875rem",
+                            textDecoration: "none",
+                            marginRight: "1.5rem",
+                            textTransform: "uppercase",
+                            letterSpacing: "1px",
+                            transition: "opacity 0.2s ease",
+                            position: "relative",
+                            paddingBottom: "0.25rem",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            padding: "0",
+                            gap: "0.5rem",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.opacity = "0.6";
+                            const underline = e.target.querySelector(".nav-underline");
+                            if (underline) underline.style.width = "100%";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.opacity = "1";
+                            const underline = e.target.querySelector(".nav-underline");
+                            if (underline) underline.style.width = "0";
                           }}
                         >
-                          {this.props.favorites.length}
-                        </Badge>
-                      )}
-                      <span
-                        className="nav-underline"
-                        style={{
-                          position: "absolute",
-                          bottom: "0",
-                          left: "0",
-                          height: "1px",
-                          width: "0",
-                          backgroundColor: "#1a1a1a",
-                          transition: "width 0.3s ease",
-                        }}
-                      />
-                    </NavLink>
-                  </NavItem>
-                  <CartSummary />
+                          Favorites
+                          {this.props.favorites && this.props.favorites.length > 0 && (
+                            <Badge
+                              style={{
+                                background: "#1a1a1a",
+                                color: "white",
+                                borderRadius: "50%",
+                                width: "18px",
+                                height: "18px",
+                                fontSize: "0.625rem",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "0",
+                              }}
+                            >
+                              {this.props.favorites.length}
+                            </Badge>
+                          )}
+                          <span
+                            className="nav-underline"
+                            style={{
+                              position: "absolute",
+                              bottom: "0",
+                              left: "0",
+                              height: "1px",
+                              width: "0",
+                              backgroundColor: "#1a1a1a",
+                              transition: "width 0.3s ease",
+                            }}
+                          />
+                        </NavLink>
+                      </NavItem>
+                      <CartSummary />
+                    </>
+                  ) : null}
                 </Nav>
               </Collapse>
             </div>
           </div>
         </Navbar>
-        <div
-          style={{
-            background: "#ffffff",
-            borderBottom: "1px solid #e5e7eb",
-            padding: "0.75rem 0",
-          }}
-        >
-          <div className="container">
-            <div className="d-flex align-items-center gap-4" style={{ flexWrap: "wrap" }}>
-              <NavLink
-                tag={Link}
-                to="/"
-                onClick={(e) => this.handleCategoryClick("All", e)}
-                style={{
-                  color: !this.props.currentCategory.id ? "#1a1a1a" : "#6b7280",
-                  fontWeight: !this.props.currentCategory.id ? "500" : "400",
-                  fontSize: "0.875rem",
-                  textDecoration: "none",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  cursor: "pointer",
-                }}
-              >
-                All
-              </NavLink>
-              <div className="category-dropdown-container" style={{ position: "relative" }}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    this.toggleCategoryDropdown();
-                  }}
+        {!this.props.auth.isAuthenticated || this.props.auth.user?.role !== "admin" ? (
+          <div
+            style={{
+              background: "#ffffff",
+              borderBottom: "1px solid #e5e7eb",
+              padding: "0.75rem 0",
+            }}
+          >
+            <div className="container">
+              <div className="d-flex align-items-center gap-4" style={{ flexWrap: "wrap" }}>
+                <NavLink
+                  tag={Link}
+                  to="/"
+                  onClick={(e) => this.handleCategoryClick("All", e)}
                   style={{
-                    background: "transparent",
-                    border: "none",
-                    color: this.props.currentCategory.id ? "#1a1a1a" : "#6b7280",
-                    fontWeight: this.props.currentCategory.id ? "500" : "400",
+                    color: !this.props.currentCategory.id ? "#1a1a1a" : "#6b7280",
+                    fontWeight: !this.props.currentCategory.id ? "500" : "400",
                     fontSize: "0.875rem",
+                    textDecoration: "none",
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
-                    padding: "0",
                     cursor: "pointer",
                   }}
                 >
-                  Categories
-                </button>
-                {this.state.categoryDropdownOpen && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      left: "0",
-                      marginTop: "0.5rem",
-                      background: "#ffffff",
-                      border: "1px solid #e5e7eb",
-                      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                      minWidth: "600px",
-                      maxWidth: "90vw",
-                      padding: "1.5rem",
-                      zIndex: 1000,
+                  All
+                </NavLink>
+                <div className="category-dropdown-container" style={{ position: "relative" }}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      this.toggleCategoryDropdown();
                     }}
-                    className="category-dropdown-menu"
-                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: this.props.currentCategory.id ? "#1a1a1a" : "#6b7280",
+                      fontWeight: this.props.currentCategory.id ? "500" : "400",
+                      fontSize: "0.875rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                      padding: "0",
+                      cursor: "pointer",
+                    }}
                   >
-                    {this.props.categories && this.props.categories.length > 0
-                      ? this.props.categories.map((category) => (
-                        <div
-                          key={category.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            this.handleCategoryClick(category.id, e);
-                            this.toggleCategoryDropdown();
-                          }}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.75rem",
-                            color:
-                              this.props.currentCategory.id === category.id
-                                ? "#1a1a1a"
-                                : "#6b7280",
-                            fontWeight:
-                              this.props.currentCategory.id === category.id
-                                ? "500"
-                                : "400",
-                            fontSize: "0.875rem",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.5px",
-                            padding: "0.75rem 1rem",
-                            cursor: "pointer",
-                            backgroundColor:
-                              this.props.currentCategory.id === category.id
-                                ? "#f9fafb"
-                                : "transparent",
-                            borderRadius: "4px",
-                            transition: "all 0.2s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            if (this.props.currentCategory.id === category.id) return;
-                            e.target.style.backgroundColor = "#f9fafb";
-                          }}
-                          onMouseLeave={(e) => {
-                            if (this.props.currentCategory.id === category.id) return;
-                            e.target.style.backgroundColor = "transparent";
-                          }}
-                        >
-                          <span style={{ display: "flex", alignItems: "center", minWidth: "20px" }}>
-                            {this.getCategoryIcon(category.categoryName)}
-                          </span>
-                          {category.categoryName}
-                        </div>
-                      ))
-                      : null}
-                  </div>
-                )}
+                    Categories
+                  </button>
+                  {this.state.categoryDropdownOpen && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: "0",
+                        marginTop: "0.5rem",
+                        background: "#ffffff",
+                        border: "1px solid #e5e7eb",
+                        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                        minWidth: "600px",
+                        maxWidth: "90vw",
+                        padding: "1.5rem",
+                        zIndex: 1000,
+                      }}
+                      className="category-dropdown-menu"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {this.props.categories && this.props.categories.length > 0
+                        ? this.props.categories.map((category) => (
+                          <div
+                            key={category.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              this.handleCategoryClick(category.id, e);
+                              this.toggleCategoryDropdown();
+                            }}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.75rem",
+                              color:
+                                this.props.currentCategory.id === category.id
+                                  ? "#1a1a1a"
+                                  : "#6b7280",
+                              fontWeight:
+                                this.props.currentCategory.id === category.id
+                                  ? "500"
+                                  : "400",
+                              fontSize: "0.875rem",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px",
+                              padding: "0.75rem 1rem",
+                              cursor: "pointer",
+                              backgroundColor:
+                                this.props.currentCategory.id === category.id
+                                  ? "#f9fafb"
+                                  : "transparent",
+                              borderRadius: "4px",
+                              transition: "all 0.2s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              if (this.props.currentCategory.id === category.id) return;
+                              e.target.style.backgroundColor = "#f9fafb";
+                            }}
+                            onMouseLeave={(e) => {
+                              if (this.props.currentCategory.id === category.id) return;
+                              e.target.style.backgroundColor = "transparent";
+                            }}
+                          >
+                            <span style={{ display: "flex", alignItems: "center", minWidth: "20px" }}>
+                              {this.getCategoryIcon(category.categoryName)}
+                            </span>
+                            {category.categoryName}
+                          </div>
+                        ))
+                        : null}
+                    </div>
+                  )}
+                </div>
+                <NavLink
+                  tag={Link}
+                  to="/"
+                  onClick={(e) => this.handleCategoryClick("Sale", e)}
+                  style={{
+                    color: "#6b7280",
+                    fontWeight: "400",
+                    fontSize: "0.875rem",
+                    textDecoration: "none",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Sale
+                </NavLink>
               </div>
-              <NavLink
-                tag={Link}
-                to="/"
-                onClick={(e) => this.handleCategoryClick("Sale", e)}
-                style={{
-                  color: "#6b7280",
-                  fontWeight: "400",
-                  fontSize: "0.875rem",
-                  textDecoration: "none",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  cursor: "pointer",
-                }}
-              >
-                Sale
-              </NavLink>
             </div>
           </div>
-        </div>
+        ) : null}
       </div>
     );
   }
