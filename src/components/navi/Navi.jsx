@@ -153,13 +153,22 @@ class Navi extends Component {
   handleSearchSubmit = (e) => {
     e.preventDefault();
     if (this.state.searchTerm.trim()) {
+      this.props.actions.changeCategory({});
       const event = new CustomEvent("searchProducts", {
         detail: { searchTerm: this.state.searchTerm },
       });
       window.dispatchEvent(event);
 
+      const showProductsEvent = new CustomEvent("showAllProducts", { detail: {} });
+      window.dispatchEvent(showProductsEvent);
+
       if (window.location.pathname !== "/") {
         window.location.href = "/";
+      } else {
+        setTimeout(() => {
+          window.dispatchEvent(event);
+          window.dispatchEvent(showProductsEvent);
+        }, 100);
       }
     }
   };
@@ -329,6 +338,11 @@ class Navi extends Component {
                       placeholder="What can we help you find?"
                       value={this.state.searchTerm}
                       onChange={this.handleSearchChange}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          this.handleSearchSubmit(e);
+                        }
+                      }}
                       style={{
                         border: "1px solid #e5e7eb",
                         borderRadius: "0",
