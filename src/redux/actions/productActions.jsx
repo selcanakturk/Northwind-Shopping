@@ -1,4 +1,5 @@
 import * as actionTypes from "./actionTypes.jsx";
+import alertify from "alertifyjs";
 
 export function getProductsSuccess(products) {
   return { type: actionTypes.GET_PRODUCTS_SUCCESS, payload: products };
@@ -88,6 +89,37 @@ export function getProducts(categoryId) {
       .catch((error) => {
         dispatch(getProductsError(error.message));
         console.error("Ürünler yüklenirken hata:", error);
+      });
+  };
+}
+
+export function deleteProductSuccess(productId) {
+  return {
+    type: actionTypes.DELETE_PRODUCT_SUCCESS,
+    payload: productId,
+  };
+}
+
+export function deleteProduct(productId) {
+  return function (dispatch) {
+    return fetch(`http://localhost:3000/products/${productId}`, {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Ürün silinirken hata oluştu");
+        }
+        return response.json();
+      })
+      .then(() => {
+        dispatch(deleteProductSuccess(productId));
+        alertify.success("Product deleted successfully.");
+      })
+      .catch((error) => {
+        alertify.error("Failed to delete product.");
+        console.error("Ürün silinirken hata:", error);
+        throw error;
       });
   };
 }

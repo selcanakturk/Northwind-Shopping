@@ -44,6 +44,21 @@ class ProductList extends Component {
     alertify.success(product.productName + " added to cart.");
   };
 
+  handleDeleteProduct = (product, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    alertify.confirm(
+      "Delete Product",
+      `Are you sure you want to delete "${product.productName}"? This action cannot be undone.`,
+      () => {
+        this.props.actions.deleteProduct(product.id);
+      },
+      () => {
+        alertify.error("Deletion cancelled.");
+      }
+    );
+  };
+
   handleSearchChange = (e) => {
     this.setState({ searchTerm: e.target.value });
   };
@@ -283,17 +298,48 @@ class ProductList extends Component {
                   </div>
                 </Link>
                 <div style={{ padding: "0 1.5rem 1.5rem 1.5rem" }}>
-                  <Button
-                    className="btn-modern w-100"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      this.addToCart(product);
-                    }}
-                    disabled={product.unitsInStock === 0}
-                  >
-                    {product.unitsInStock > 0 ? "Add to Cart" : "Out of Stock"}
-                  </Button>
+                  {this.props.auth?.isAuthenticated && this.props.auth?.user?.role === "admin" ? (
+                    <Button
+                      className="btn-modern w-100"
+                      onClick={(e) => this.handleDeleteProduct(product, e)}
+                      style={{
+                        backgroundColor: "transparent",
+                        color: "#6b7280",
+                        border: "1px solid #e5e7eb",
+                        padding: "0.75rem 1rem",
+                        fontSize: "0.875rem",
+                        fontWeight: "400",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.borderColor = "#ef4444";
+                        e.target.style.color = "#ef4444";
+                        e.target.style.backgroundColor = "#fef2f2";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.borderColor = "#e5e7eb";
+                        e.target.style.color = "#6b7280";
+                        e.target.style.backgroundColor = "transparent";
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  ) : (
+                    <Button
+                      className="btn-modern w-100"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.addToCart(product);
+                      }}
+                      disabled={product.unitsInStock === 0}
+                    >
+                      {product.unitsInStock > 0 ? "Add to Cart" : "Out of Stock"}
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
@@ -319,6 +365,7 @@ function mapStateToProps(state) {
   return {
     currentCategory: state.changeCategoryReducer,
     products: state.productListReducer,
+    auth: state.authReducer,
   };
 }
 function mapDispatchToProps(dispatch) {
@@ -326,6 +373,7 @@ function mapDispatchToProps(dispatch) {
     actions: {
       getProducts: bindActionCreators(productActions.getProducts, dispatch),
       addToCart: bindActionCreators(cartActions.addToCart, dispatch),
+      deleteProduct: bindActionCreators(productActions.deleteProduct, dispatch),
     },
   };
 }

@@ -300,46 +300,48 @@ class ProductDetail extends Component {
                 >
                   {product.productName}
                 </h1>
-                <button
-                  onClick={() => this.toggleFavorite(product)}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "0.5rem",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    transition: "transform 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = "scale(1.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "scale(1)";
-                  }}
-                  title={
-                    this.isFavorite(product.id)
-                      ? "Remove from favorites"
-                      : "Add to favorites"
-                  }
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill={this.isFavorite(product.id) ? "#ef4444" : "none"}
-                    stroke={this.isFavorite(product.id) ? "#ef4444" : "#9ca3af"}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                {!this.props.auth?.isAuthenticated || this.props.auth?.user?.role !== "admin" ? (
+                  <button
+                    onClick={() => this.toggleFavorite(product)}
                     style={{
-                      transition: "fill 0.2s ease, stroke 0.2s ease",
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "0.5rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "transform 0.2s ease",
                     }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = "scale(1.1)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = "scale(1)";
+                    }}
+                    title={
+                      this.isFavorite(product.id)
+                        ? "Remove from favorites"
+                        : "Add to favorites"
+                    }
                   >
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                  </svg>
-                </button>
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill={this.isFavorite(product.id) ? "#ef4444" : "none"}
+                      stroke={this.isFavorite(product.id) ? "#ef4444" : "#9ca3af"}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{
+                        transition: "fill 0.2s ease, stroke 0.2s ease",
+                      }}
+                    >
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                  </button>
+                ) : null}
               </div>
 
               <div style={{ marginBottom: "1.5rem" }}>
@@ -433,39 +435,41 @@ class ProductDetail extends Component {
                 </div>
               </div>
 
-              <div style={{ marginBottom: "2rem" }}>
-                <Button
-                  onClick={() => this.addToCart(product)}
-                  disabled={!product.unitsInStock || product.unitsInStock === 0}
-                  style={{
-                    width: "100%",
-                    padding: "1rem 2rem",
-                    backgroundColor: product.unitsInStock > 0 ? "#1a1a1a" : "#9ca3af",
-                    color: "#ffffff",
-                    border: "none",
-                    fontSize: "0.875rem",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: "1px",
-                    cursor: product.unitsInStock > 0 ? "pointer" : "not-allowed",
-                    transition: "background-color 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (product.unitsInStock > 0) {
-                      e.target.style.backgroundColor = "#000000";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (product.unitsInStock > 0) {
-                      e.target.style.backgroundColor = "#1a1a1a";
-                    }
-                  }}
-                >
-                  {product.unitsInStock > 0
-                    ? "Add to Cart"
-                    : "Out of Stock"}
-                </Button>
-              </div>
+              {!this.props.auth?.isAuthenticated || this.props.auth?.user?.role !== "admin" ? (
+                <div style={{ marginBottom: "2rem" }}>
+                  <Button
+                    onClick={() => this.addToCart(product)}
+                    disabled={!product.unitsInStock || product.unitsInStock === 0}
+                    style={{
+                      width: "100%",
+                      padding: "1rem 2rem",
+                      backgroundColor: product.unitsInStock > 0 ? "#1a1a1a" : "#9ca3af",
+                      color: "#ffffff",
+                      border: "none",
+                      fontSize: "0.875rem",
+                      fontWeight: "600",
+                      textTransform: "uppercase",
+                      letterSpacing: "1px",
+                      cursor: product.unitsInStock > 0 ? "pointer" : "not-allowed",
+                      transition: "background-color 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (product.unitsInStock > 0) {
+                        e.target.style.backgroundColor = "#000000";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (product.unitsInStock > 0) {
+                        e.target.style.backgroundColor = "#1a1a1a";
+                      }
+                    }}
+                  >
+                    {product.unitsInStock > 0
+                      ? "Add to Cart"
+                      : "Out of Stock"}
+                  </Button>
+                </div>
+              ) : null}
 
               <div
                 style={{
@@ -651,7 +655,7 @@ class ProductDetail extends Component {
                     </p>
                   )}
 
-                  {this.props.auth.isAuthenticated ? (
+                  {this.props.auth.isAuthenticated && this.props.auth.user?.role !== "admin" ? (
                     <div
                       style={{
                         paddingTop: "1rem",
@@ -775,7 +779,7 @@ class ProductDetail extends Component {
                         Submit Review
                       </Button>
                     </div>
-                  ) : (
+                  ) : this.props.auth.isAuthenticated && this.props.auth.user?.role === "admin" ? null : (
                     <div
                       style={{
                         paddingTop: "1rem",
@@ -927,63 +931,65 @@ class ProductDetail extends Component {
                         </div>
                       </div>
                     </Link>
-                    <div style={{ padding: "0 1.5rem 1.5rem 1.5rem", marginTop: "1rem" }}>
-                      <span
-                        className={`product-card-stock ${similarProduct.unitsInStock > 20
+                    {!this.props.auth?.isAuthenticated || this.props.auth?.user?.role !== "admin" ? (
+                      <div style={{ padding: "0 1.5rem 1.5rem 1.5rem", marginTop: "1rem" }}>
+                        <span
+                          className={`product-card-stock ${similarProduct.unitsInStock > 20
                             ? "in-stock"
                             : similarProduct.unitsInStock > 0
                               ? "low-stock"
                               : "out-of-stock"
-                          }`}
-                        style={{
-                          fontSize: "0.75rem",
-                          fontWeight: "500",
-                          display: "block",
-                          marginBottom: "0.75rem",
-                        }}
-                      >
-                        {similarProduct.unitsInStock > 20
-                          ? "In Stock"
-                          : similarProduct.unitsInStock > 0
-                            ? "Low Stock"
-                            : "Out of Stock"}
-                      </span>
-                      <Button
-                        className="btn-modern w-100"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          this.addToCart(similarProduct);
-                        }}
-                        disabled={similarProduct.unitsInStock === 0}
-                        style={{
-                          width: "100%",
-                          padding: "0.75rem 1rem",
-                          backgroundColor:
-                            similarProduct.unitsInStock > 0 ? "#1a1a1a" : "#9ca3af",
-                          color: "#ffffff",
-                          border: "none",
-                          fontSize: "0.875rem",
-                          fontWeight: "600",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          cursor: similarProduct.unitsInStock > 0 ? "pointer" : "not-allowed",
-                          transition: "background-color 0.2s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (similarProduct.unitsInStock > 0) {
-                            e.target.style.backgroundColor = "#000000";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (similarProduct.unitsInStock > 0) {
-                            e.target.style.backgroundColor = "#1a1a1a";
-                          }
-                        }}
-                      >
-                        {similarProduct.unitsInStock > 0 ? "Add to Cart" : "Out of Stock"}
-                      </Button>
-                    </div>
+                            }`}
+                          style={{
+                            fontSize: "0.75rem",
+                            fontWeight: "500",
+                            display: "block",
+                            marginBottom: "0.75rem",
+                          }}
+                        >
+                          {similarProduct.unitsInStock > 20
+                            ? "In Stock"
+                            : similarProduct.unitsInStock > 0
+                              ? "Low Stock"
+                              : "Out of Stock"}
+                        </span>
+                        <Button
+                          className="btn-modern w-100"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.addToCart(similarProduct);
+                          }}
+                          disabled={similarProduct.unitsInStock === 0}
+                          style={{
+                            width: "100%",
+                            padding: "0.75rem 1rem",
+                            backgroundColor:
+                              similarProduct.unitsInStock > 0 ? "#1a1a1a" : "#9ca3af",
+                            color: "#ffffff",
+                            border: "none",
+                            fontSize: "0.875rem",
+                            fontWeight: "600",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                            cursor: similarProduct.unitsInStock > 0 ? "pointer" : "not-allowed",
+                            transition: "background-color 0.2s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (similarProduct.unitsInStock > 0) {
+                              e.target.style.backgroundColor = "#000000";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (similarProduct.unitsInStock > 0) {
+                              e.target.style.backgroundColor = "#1a1a1a";
+                            }
+                          }}
+                        >
+                          {similarProduct.unitsInStock > 0 ? "Add to Cart" : "Out of Stock"}
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
                 </Col>
               ))}

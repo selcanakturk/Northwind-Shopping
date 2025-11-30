@@ -12,6 +12,11 @@ export default function productListReducer(
       return { ...state, data: action.payload, loading: false, error: null };
     case actionTypes.GET_PRODUCTS_ERROR:
       return { ...state, loading: false, error: action.payload };
+    case actionTypes.DELETE_PRODUCT_SUCCESS:
+      return {
+        ...state,
+        data: state.data.filter((product) => product.id !== action.payload),
+      };
     default:
       return state;
   }

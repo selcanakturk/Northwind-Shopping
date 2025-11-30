@@ -181,19 +181,21 @@ class FeaturedProducts extends Component {
                     </div>
                   </div>
                 </Link>
-                <div style={{ padding: "0 1.5rem 1.5rem 1.5rem", marginTop: "auto" }}>
-                  <Button
-                    className="btn-modern w-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      this.addToCart(product);
-                    }}
-                    disabled={product.unitsInStock === 0}
-                    style={{ width: "100%" }}
-                  >
-                    {product.unitsInStock > 0 ? "Add to Cart" : "Out of Stock"}
-                  </Button>
-                </div>
+                {!this.props.auth?.isAuthenticated || this.props.auth?.user?.role !== "admin" ? (
+                  <div style={{ padding: "0 1.5rem 1.5rem 1.5rem", marginTop: "auto" }}>
+                    <Button
+                      className="btn-modern w-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        this.addToCart(product);
+                      }}
+                      disabled={product.unitsInStock === 0}
+                      style={{ width: "100%" }}
+                    >
+                      {product.unitsInStock > 0 ? "Add to Cart" : "Out of Stock"}
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             </Col>
           ))}
@@ -207,6 +209,7 @@ function mapStateToProps(state) {
   return {
     products: state.productListReducer,
     favorites: state.favoriteReducer || [],
+    auth: state.authReducer,
   };
 }
 
