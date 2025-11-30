@@ -2,10 +2,11 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Button, Row, Col } from "reactstrap";
+import { Button, Row, Col, Input } from "reactstrap";
 import * as productActions from "../../redux/actions/productActions.jsx";
 import * as cartActions from "../../redux/actions/cartActions.jsx";
 import * as favoriteActions from "../../redux/actions/favoriteActions.jsx";
+import * as reviewActions from "../../redux/actions/reviewActions.jsx";
 import alertify from "alertifyjs";
 
 function ProductDetailWrapper(props) {
@@ -15,8 +16,30 @@ function ProductDetailWrapper(props) {
 }
 
 class ProductDetail extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      reviewText: "",
+      reviewRating: 0,
+      hoveredRating: 0,
+    };
+  }
+
   componentDidMount() {
     this.props.actions.getProducts();
+    const productId = parseInt(this.props.productId, 10);
+    if (productId) {
+      this.props.actions.getReviews(productId);
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.productId !== this.props.productId) {
+      const productId = parseInt(this.props.productId, 10);
+      if (productId) {
+        this.props.actions.getReviews(productId);
+      }
+    }
   }
 
   addToCart = (product) => {
@@ -46,6 +69,97 @@ class ProductDetail extends Component {
     const products = Array.isArray(productsData) ? productsData : [];
     const productId = parseInt(this.props.productId, 10);
     return products.find((p) => p.id === productId);
+  };
+
+  getReviews = () => {
+    const productId = parseInt(this.props.productId, 10);
+    return this.props.reviews[productId] || [];
+  };
+
+  handleReviewChange = (e) => {
+    this.setState({ reviewText: e.target.value });
+  };
+
+  handleRatingClick = (rating) => {
+    this.setState({ reviewRating: rating });
+  };
+
+  handleRatingHover = (rating) => {
+    this.setState({ hoveredRating: rating });
+  };
+
+  handleRatingLeave = () => {
+    this.setState({ hoveredRating: 0 });
+  };
+
+  submitReview = () => {
+    const { reviewText, reviewRating } = this.state;
+    const product = this.getProductById();
+    const productId = parseInt(this.props.productId, 10);
+
+    if (!product) {
+      alertify.error("Product not found.");
+      return;
+    }
+
+    if (!reviewText.trim()) {
+      alertify.error("Please enter a review text.");
+      return;
+    }
+
+    if (reviewRating === 0) {
+      alertify.error("Please select a rating.");
+      return;
+    }
+
+    this.props.actions.addReview({
+      productId,
+      rating: reviewRating,
+      comment: reviewText.trim(),
+    });
+
+    this.setState({ reviewText: "", reviewRating: 0, hoveredRating: 0 });
+  };
+
+  deleteReview = (reviewId) => {
+    if (window.confirm("Are you sure you want to delete this review?")) {
+      this.props.actions.deleteReview(reviewId);
+    }
+  };
+
+  formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  renderStars = (rating, size = "1rem") => {
+    return (
+      <div style={{ display: "flex", gap: "0.25rem" }}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            style={{
+              fontSize: size,
+              color: star <= rating ? "#f59e0b" : "#d1d5db",
+            }}
+          >
+            ★
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  getAverageRating = () => {
+    const reviews = this.getReviews();
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+    return (sum / reviews.length).toFixed(1);
   };
 
   getSimilarProducts = () => {
@@ -392,181 +506,304 @@ class ProductDetail extends Component {
                   border: "1px solid #e5e7eb",
                 }}
               >
-                <h4
+                <div
                   style={{
-                    fontSize: "0.875rem",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    color: "#1a1a1a",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                     marginBottom: "1rem",
                   }}
                 >
-                  Reviews
-                </h4>
+                  <h4
+                    style={{
+                      fontSize: "0.875rem",
+                      fontWeight: "600",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                      color: "#1a1a1a",
+                      margin: 0,
+                    }}
+                  >
+                    Reviews
+                  </h4>
+                  {this.getReviews().length > 0 && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                        Average Rating:
+                      </span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        {this.renderStars(Math.round(this.getAverageRating()))}
+                        <span
+                          style={{
+                            fontSize: "0.875rem",
+                            fontWeight: "600",
+                            color: "#1a1a1a",
+                          }}
+                        >
+                          {this.getAverageRating()}
+                        </span>
+                        <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                          ({this.getReviews().length} {this.getReviews().length === 1 ? "review" : "reviews"})
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div
                   style={{
                     borderTop: "1px solid #e5e7eb",
                     paddingTop: "1rem",
                   }}
                 >
-                  <div
-                    style={{
-                      marginBottom: "1rem",
-                      paddingBottom: "1rem",
-                      borderBottom: "1px solid #f3f4f6",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "0.5rem",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: "0.875rem",
-                          fontWeight: "500",
-                          color: "#1a1a1a",
-                        }}
-                      >
-                        John D.
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "#6b7280",
-                        }}
-                      >
-                        ⭐⭐⭐⭐⭐
-                      </span>
-                    </div>
-                    <p
-                      style={{
-                        fontSize: "0.875rem",
-                        color: "#6b7280",
-                        lineHeight: "1.6",
-                        margin: "0",
-                      }}
-                    >
-                      Great product! Very satisfied with the quality and delivery.
-                    </p>
-                  </div>
-                  <div
-                    style={{
-                      marginBottom: "1rem",
-                      paddingBottom: "1rem",
-                      borderBottom: "1px solid #f3f4f6",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "0.5rem",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: "0.875rem",
-                          fontWeight: "500",
-                          color: "#1a1a1a",
-                        }}
-                      >
-                        Sarah M.
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "#6b7280",
-                        }}
-                      >
-                        ⭐⭐⭐⭐
-                      </span>
-                    </div>
-                    <p
-                      style={{
-                        fontSize: "0.875rem",
-                        color: "#6b7280",
-                        lineHeight: "1.6",
-                        margin: "0",
-                      }}
-                    >
-                      Good value for money. Would recommend to others.
-                    </p>
-                  </div>
-                  <div
-                    style={{
-                      paddingTop: "1rem",
-                      borderTop: "1px solid #e5e7eb",
-                    }}
-                  >
-                    <textarea
-                      placeholder="Write your review..."
-                      style={{
-                        width: "100%",
-                        minHeight: "100px",
-                        padding: "0.75rem",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "0",
-                        fontSize: "0.875rem",
-                        fontFamily: "inherit",
-                        resize: "vertical",
-                        marginBottom: "0.75rem",
-                      }}
-                    />
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "0.5rem",
-                        marginBottom: "0.75rem",
-                      }}
-                    >
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
+                  {this.getReviews().length > 0 ? (
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      {this.getReviews().map((review) => (
+                        <div
+                          key={review.id}
                           style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: "1.25rem",
-                            padding: "0",
+                            marginBottom: "1rem",
+                            paddingBottom: "1rem",
+                            borderBottom: "1px solid #f3f4f6",
+                            position: "relative",
                           }}
                         >
-                          ⭐
-                        </button>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "flex-start",
+                              marginBottom: "0.5rem",
+                            }}
+                          >
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "0.75rem",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: "0.875rem",
+                                    fontWeight: "500",
+                                    color: "#1a1a1a",
+                                  }}
+                                >
+                                  {review.username}
+                                </span>
+                                {this.renderStars(review.rating, "0.875rem")}
+                              </div>
+                              <span
+                                style={{
+                                  fontSize: "0.75rem",
+                                  color: "#6b7280",
+                                }}
+                              >
+                                {this.formatDate(review.date)}
+                              </span>
+                            </div>
+                            {(this.props.auth.user?.role === "admin" ||
+                              this.props.auth.user?.id === review.userId) && (
+                                <button
+                                  onClick={() => this.deleteReview(review.id)}
+                                  style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    color: "#ef4444",
+                                    cursor: "pointer",
+                                    fontSize: "0.75rem",
+                                    padding: "0.25rem 0.5rem",
+                                    transition: "opacity 0.2s ease",
+                                  }}
+                                  onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
+                                  onMouseLeave={(e) => (e.target.style.opacity = "1")}
+                                >
+                                  Delete
+                                </button>
+                              )}
+                          </div>
+                          <p
+                            style={{
+                              fontSize: "0.875rem",
+                              color: "#6b7280",
+                              lineHeight: "1.6",
+                              margin: "0",
+                            }}
+                          >
+                            {review.comment}
+                          </p>
+                        </div>
                       ))}
                     </div>
-                    <Button
+                  ) : (
+                    <p
                       style={{
-                        width: "100%",
-                        padding: "0.75rem 1rem",
-                        backgroundColor: "#1a1a1a",
-                        color: "#ffffff",
-                        border: "none",
                         fontSize: "0.875rem",
-                        fontWeight: "600",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                        cursor: "pointer",
-                        transition: "background-color 0.2s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = "#000000";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = "#1a1a1a";
-                      }}
-                      onClick={() => {
-                        alertify.success("Review submitted!");
+                        color: "#6b7280",
+                        textAlign: "center",
+                        padding: "2rem 0",
+                        margin: 0,
                       }}
                     >
-                      Submit Review
-                    </Button>
-                  </div>
+                      No reviews yet. Be the first to review this product!
+                    </p>
+                  )}
+
+                  {this.props.auth.isAuthenticated ? (
+                    <div
+                      style={{
+                        paddingTop: "1rem",
+                        borderTop: "1px solid #e5e7eb",
+                      }}
+                    >
+                      <h5
+                        style={{
+                          fontSize: "0.875rem",
+                          fontWeight: "600",
+                          color: "#1a1a1a",
+                          marginBottom: "0.75rem",
+                        }}
+                      >
+                        Write a Review
+                      </h5>
+                      <div style={{ marginBottom: "0.75rem" }}>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "0.875rem",
+                            fontWeight: "500",
+                            color: "#1a1a1a",
+                            marginBottom: "0.5rem",
+                          }}
+                        >
+                          Rating <span style={{ color: "#ef4444" }}>*</span>
+                        </label>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "0.5rem",
+                            alignItems: "center",
+                          }}
+                        >
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => this.handleRatingClick(star)}
+                              onMouseEnter={(e) => {
+                                this.handleRatingHover(star);
+                                e.target.style.transform = "scale(1.2)";
+                              }}
+                              onMouseLeave={(e) => {
+                                this.handleRatingLeave();
+                                e.target.style.transform = "scale(1)";
+                              }}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "1.5rem",
+                                padding: "0",
+                                transition: "transform 0.2s ease",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  color:
+                                    star <= (this.state.hoveredRating || this.state.reviewRating)
+                                      ? "#f59e0b"
+                                      : "#d1d5db",
+                                  transition: "color 0.2s ease",
+                                }}
+                              >
+                                ★
+                              </span>
+                            </button>
+                          ))}
+                          {this.state.reviewRating > 0 && (
+                            <span
+                              style={{
+                                fontSize: "0.875rem",
+                                color: "#6b7280",
+                                marginLeft: "0.5rem",
+                              }}
+                            >
+                              {this.state.reviewRating} {this.state.reviewRating === 1 ? "star" : "stars"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Input
+                        type="textarea"
+                        placeholder="Share your thoughts on this product..."
+                        value={this.state.reviewText}
+                        onChange={this.handleReviewChange}
+                        rows="4"
+                        style={{
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "0",
+                          padding: "0.75rem 1rem",
+                          marginBottom: "0.75rem",
+                          resize: "vertical",
+                          fontSize: "0.875rem",
+                        }}
+                      />
+                      <Button
+                        onClick={this.submitReview}
+                        style={{
+                          width: "100%",
+                          padding: "0.75rem 1rem",
+                          backgroundColor: "#1a1a1a",
+                          color: "#ffffff",
+                          border: "none",
+                          fontSize: "0.875rem",
+                          fontWeight: "600",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                          cursor: "pointer",
+                          transition: "background-color 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = "#000000";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = "#1a1a1a";
+                        }}
+                      >
+                        Submit Review
+                      </Button>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        paddingTop: "1rem",
+                        borderTop: "1px solid #e5e7eb",
+                        textAlign: "center",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: "0.875rem",
+                          color: "#6b7280",
+                          marginBottom: "1rem",
+                        }}
+                      >
+                        Please{" "}
+                        <Link
+                          to="/login"
+                          style={{
+                            color: "#1a1a1a",
+                            textDecoration: "underline",
+                          }}
+                        >
+                          login
+                        </Link>{" "}
+                        to write a review.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -692,13 +929,12 @@ class ProductDetail extends Component {
                     </Link>
                     <div style={{ padding: "0 1.5rem 1.5rem 1.5rem", marginTop: "1rem" }}>
                       <span
-                        className={`product-card-stock ${
-                          similarProduct.unitsInStock > 20
+                        className={`product-card-stock ${similarProduct.unitsInStock > 20
                             ? "in-stock"
                             : similarProduct.unitsInStock > 0
-                            ? "low-stock"
-                            : "out-of-stock"
-                        }`}
+                              ? "low-stock"
+                              : "out-of-stock"
+                          }`}
                         style={{
                           fontSize: "0.75rem",
                           fontWeight: "500",
@@ -709,8 +945,8 @@ class ProductDetail extends Component {
                         {similarProduct.unitsInStock > 20
                           ? "In Stock"
                           : similarProduct.unitsInStock > 0
-                          ? "Low Stock"
-                          : "Out of Stock"}
+                            ? "Low Stock"
+                            : "Out of Stock"}
                       </span>
                       <Button
                         className="btn-modern w-100"
@@ -763,6 +999,8 @@ function mapStateToProps(state) {
   return {
     products: state.productListReducer,
     favorites: state.favoriteReducer || [],
+    reviews: state.reviewReducer || {},
+    auth: state.authReducer,
   };
 }
 
@@ -779,6 +1017,9 @@ function mapDispatchToProps(dispatch) {
         favoriteActions.removeFromFavorites,
         dispatch
       ),
+      getReviews: bindActionCreators(reviewActions.getReviews, dispatch),
+      addReview: bindActionCreators(reviewActions.addReview, dispatch),
+      deleteReview: bindActionCreators(reviewActions.deleteReview, dispatch),
     },
   };
 }

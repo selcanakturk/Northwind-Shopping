@@ -53,4 +53,5 @@ export default {
     appliedCoupon: null,
     discountAmount: 0,
   },
+  reviews: {},
 };

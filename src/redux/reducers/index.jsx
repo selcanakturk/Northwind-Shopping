@@ -7,6 +7,7 @@ import saveProductReducer from "./saveProductReducer";
 import favoriteReducer from "./favoriteReducer.jsx";
 import authReducer from "./authReducer.jsx";
 import couponReducer from "./couponReducer.jsx";
+import reviewReducer from "./reviewReducer.jsx";
 
 const rootReducer = combineReducers({
   changeCategoryReducer,
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
   favoriteReducer,
   authReducer,
   couponReducer,
+  reviewReducer,
 });
 
 export default rootReducer;
