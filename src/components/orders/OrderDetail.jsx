@@ -2,8 +2,9 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { bindActionCreators } from "redux";
-import { Row, Col } from "reactstrap";
+import { Row, Col, Input, Button } from "reactstrap";
 import * as orderActions from "../../redux/actions/orderActions.jsx";
+import alertify from "alertifyjs";
 
 function OrderDetailWrapper(props) {
   const { orderId } = useParams();
@@ -12,6 +13,13 @@ function OrderDetailWrapper(props) {
 }
 
 class OrderDetail extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      newNote: "",
+    };
+  }
+
   componentDidMount() {
     if (!this.props.auth || !this.props.auth.isAuthenticated) {
       this.props.navigate("/login");
@@ -24,6 +32,23 @@ class OrderDetail extends Component {
       this.props.actions.getOrders(this.props.auth.user.id);
     }
   }
+
+  handleNoteChange = (e) => {
+    this.setState({ newNote: e.target.value });
+  };
+
+  handleAddNote = () => {
+    const order = this.getOrderById();
+    if (!order) return;
+
+    if (!this.state.newNote.trim()) {
+      alertify.error("Please enter a note.");
+      return;
+    }
+
+    this.props.actions.addOrderNote(order.id, this.state.newNote);
+    this.setState({ newNote: "" });
+  };
 
   getOrderById = () => {
     const { orders } = this.props;
@@ -385,6 +410,7 @@ class OrderDetail extends Component {
                 border: "1px solid #e5e7eb",
                 backgroundColor: "#ffffff",
                 padding: "2rem",
+                marginBottom: "2rem",
               }}
             >
               <h3
@@ -444,6 +470,157 @@ class OrderDetail extends Component {
                 </div>
               </div>
             </div>
+
+            {auth.user && auth.user.role === "admin" && (
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  backgroundColor: "#ffffff",
+                  padding: "2rem",
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: "1rem",
+                    fontWeight: "600",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    color: "#1a1a1a",
+                    marginBottom: "1.5rem",
+                  }}
+                >
+                  Order Notes
+                </h3>
+                <div
+                  style={{
+                    borderTop: "1px solid #e5e7eb",
+                    paddingTop: "1rem",
+                    marginBottom: "1.5rem",
+                  }}
+                >
+                  {order.notes && order.notes.length > 0 ? (
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      {order.notes.map((note) => (
+                        <div
+                          key={note.id}
+                          style={{
+                            padding: "1rem",
+                            marginBottom: "0.75rem",
+                            backgroundColor: "#f9fafb",
+                            border: "1px solid #e5e7eb",
+                            borderRadius: "4px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "flex-start",
+                              marginBottom: "0.5rem",
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: "0.75rem",
+                                color: "#6b7280",
+                                fontWeight: "500",
+                              }}
+                            >
+                              {note.createdBy || "Admin"}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: "0.75rem",
+                                color: "#9ca3af",
+                              }}
+                            >
+                              {this.formatDate(note.createdAt)}
+                            </span>
+                          </div>
+                          <p
+                            style={{
+                              fontSize: "0.875rem",
+                              color: "#1a1a1a",
+                              margin: "0",
+                              lineHeight: "1.5",
+                            }}
+                          >
+                            {note.text}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#6b7280",
+                        textAlign: "center",
+                        padding: "2rem 0",
+                        margin: "0",
+                      }}
+                    >
+                      No notes yet. Add a note to track important information about this order.
+                    </p>
+                  )}
+                </div>
+                <div
+                  style={{
+                    borderTop: "1px solid #e5e7eb",
+                    paddingTop: "1.5rem",
+                  }}
+                >
+                  <h4
+                    style={{
+                      fontSize: "0.875rem",
+                      fontWeight: "600",
+                      color: "#1a1a1a",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    Add Note
+                  </h4>
+                  <Input
+                    type="textarea"
+                    placeholder="Enter a note about this order..."
+                    value={this.state.newNote}
+                    onChange={this.handleNoteChange}
+                    rows="3"
+                    style={{
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "0",
+                      padding: "0.75rem 1rem",
+                      marginBottom: "0.75rem",
+                      fontSize: "0.875rem",
+                      resize: "vertical",
+                    }}
+                  />
+                  <Button
+                    onClick={this.handleAddNote}
+                    style={{
+                      backgroundColor: "#1a1a1a",
+                      color: "#ffffff",
+                      border: "none",
+                      fontSize: "0.875rem",
+                      fontWeight: "600",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                      padding: "0.75rem 1.5rem",
+                      cursor: "pointer",
+                      transition: "background-color 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = "#000000";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = "#1a1a1a";
+                    }}
+                  >
+                    Add Note
+                  </Button>
+                </div>
+              </div>
+            )}
           </Col>
 
           <Col md="4">
@@ -591,6 +768,7 @@ function mapDispatchToProps(dispatch) {
   return {
     actions: {
       getOrders: bindActionCreators(orderActions.getOrders, dispatch),
+      addOrderNote: bindActionCreators(orderActions.addOrderNote, dispatch),
     },
   };
 }
