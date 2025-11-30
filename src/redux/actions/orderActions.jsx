@@ -63,3 +63,17 @@ export function getOrders(userId = null) {
   };
 }
 
+export function updateOrderStatus(orderId, newStatus) {
+  return (dispatch) => {
+    const orders = loadOrdersFromStorage();
+    const updatedOrders = orders.map((order) =>
+      order.id === orderId ? { ...order, status: newStatus } : order
+    );
+    saveOrdersToStorage(updatedOrders);
+    const updatedOrder = updatedOrders.find((order) => order.id === orderId);
+    dispatch({ type: actionTypes.UPDATE_ORDER_STATUS_SUCCESS, payload: updatedOrder });
+    alertify.success(`Order status updated to ${newStatus}.`);
+    return updatedOrder;
+  };
+}
+

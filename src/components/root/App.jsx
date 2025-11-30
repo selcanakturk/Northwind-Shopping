@@ -11,6 +11,7 @@ import Checkout from "../checkout/Checkout.jsx";
 import Login from "../auth/Login.jsx";
 import Account from "../account/Account.jsx";
 import CouponManagement from "../admin/CouponManagement.jsx";
+import OrderManagement from "../admin/OrderManagement.jsx";
 import OrderDetail from "../orders/OrderDetail.jsx";
 import NotFound from "../common/NotFound.jsx";
 
@@ -36,6 +37,7 @@ function App() {
           <Route path="/account" element={<Account />} />
           <Route path="/order/:orderId" element={<OrderDetail />} />
           <Route path="/admin/coupons" element={<CouponManagement />} />
+          <Route path="/admin/orders" element={<OrderManagement />} />
           <Route
             path="/saveproduct/:productId"
             element={<AddOrUpdateProduct />}

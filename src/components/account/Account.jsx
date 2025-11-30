@@ -921,101 +921,101 @@ class Account extends Component {
                                   {this.formatDate(order.orderDate)}
                                 </div>
                               </div>
-                            <div style={{ textAlign: "right" }}>
+                              <div style={{ textAlign: "right" }}>
+                                <div
+                                  style={{
+                                    fontSize: "0.875rem",
+                                    fontWeight: "600",
+                                    color: "#1a1a1a",
+                                    marginBottom: "0.25rem",
+                                  }}
+                                >
+                                  ${order.pricing.total.toFixed(2)}
+                                </div>
+                                <span
+                                  style={{
+                                    display: "inline-block",
+                                    padding: "0.25rem 0.75rem",
+                                    backgroundColor:
+                                      order.status === "pending"
+                                        ? "#fef3c7"
+                                        : order.status === "shipped"
+                                          ? "#dbeafe"
+                                          : order.status === "delivered"
+                                            ? "#d1fae5"
+                                            : "#f3f4f6",
+                                    color:
+                                      order.status === "pending"
+                                        ? "#92400e"
+                                        : order.status === "shipped"
+                                          ? "#1e40af"
+                                          : order.status === "delivered"
+                                            ? "#065f46"
+                                            : "#6b7280",
+                                    fontSize: "0.75rem",
+                                    fontWeight: "600",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.5px",
+                                  }}
+                                >
+                                  {order.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div
+                              style={{
+                                borderTop: "1px solid #e5e7eb",
+                                paddingTop: "1rem",
+                                marginTop: "1rem",
+                              }}
+                            >
                               <div
                                 style={{
                                   fontSize: "0.875rem",
-                                  fontWeight: "600",
+                                  fontWeight: "500",
                                   color: "#1a1a1a",
-                                  marginBottom: "0.25rem",
+                                  marginBottom: "0.75rem",
                                 }}
                               >
-                                ${order.pricing.total.toFixed(2)}
+                                Items ({order.items.length})
                               </div>
-                              <span
+                              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                                {order.items.map((item, index) => (
+                                  <div
+                                    key={index}
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      padding: "0.5rem 0",
+                                      fontSize: "0.875rem",
+                                      color: "#6b7280",
+                                    }}
+                                  >
+                                    <span>
+                                      {item.productName} x {item.quantity}
+                                    </span>
+                                    <span style={{ fontWeight: "500", color: "#1a1a1a" }}>
+                                      ${item.totalPrice.toFixed(2)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {order.couponCode && (
+                              <div
                                 style={{
-                                  display: "inline-block",
-                                  padding: "0.25rem 0.75rem",
-                                  backgroundColor:
-                                    order.status === "pending"
-                                      ? "#fef3c7"
-                                      : order.status === "shipped"
-                                      ? "#dbeafe"
-                                      : order.status === "delivered"
-                                      ? "#d1fae5"
-                                      : "#f3f4f6",
-                                  color:
-                                    order.status === "pending"
-                                      ? "#92400e"
-                                      : order.status === "shipped"
-                                      ? "#1e40af"
-                                      : order.status === "delivered"
-                                      ? "#065f46"
-                                      : "#6b7280",
+                                  marginTop: "0.75rem",
+                                  paddingTop: "0.75rem",
+                                  borderTop: "1px solid #f3f4f6",
                                   fontSize: "0.75rem",
-                                  fontWeight: "600",
-                                  textTransform: "uppercase",
-                                  letterSpacing: "0.5px",
+                                  color: "#6b7280",
                                 }}
                               >
-                                {order.status}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div
-                            style={{
-                              borderTop: "1px solid #e5e7eb",
-                              paddingTop: "1rem",
-                              marginTop: "1rem",
-                            }}
-                          >
-                            <div
-                              style={{
-                                fontSize: "0.875rem",
-                                fontWeight: "500",
-                                color: "#1a1a1a",
-                                marginBottom: "0.75rem",
-                              }}
-                            >
-                              Items ({order.items.length})
-                            </div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                              {order.items.map((item, index) => (
-                                <div
-                                  key={index}
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    padding: "0.5rem 0",
-                                    fontSize: "0.875rem",
-                                    color: "#6b7280",
-                                  }}
-                                >
-                                  <span>
-                                    {item.productName} x {item.quantity}
-                                  </span>
-                                  <span style={{ fontWeight: "500", color: "#1a1a1a" }}>
-                                    ${item.totalPrice.toFixed(2)}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                              {order.couponCode && (
-                                <div
-                                  style={{
-                                    marginTop: "0.75rem",
-                                    paddingTop: "0.75rem",
-                                    borderTop: "1px solid #f3f4f6",
-                                    fontSize: "0.75rem",
-                                    color: "#6b7280",
-                                  }}
-                                >
-                                  Coupon applied: <strong>{order.couponCode}</strong>
-                                </div>
-                              )}
+                                Coupon applied: <strong>{order.couponCode}</strong>
+                              </div>
+                            )}
                           </div>
                         </Link>
                       ))}

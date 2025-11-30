@@ -13,18 +13,42 @@ function OrderDetailWrapper(props) {
 
 class OrderDetail extends Component {
   componentDidMount() {
-    if (!this.props.auth.isAuthenticated) {
+    if (!this.props.auth || !this.props.auth.isAuthenticated) {
       this.props.navigate("/login");
       return;
     }
-    this.props.actions.getOrders(this.props.auth.user.id);
+    // Admin ise tüm siparişleri getir, değilse sadece kendi siparişlerini
+    if (this.props.auth.user && this.props.auth.user.role === "admin") {
+      this.props.actions.getOrders();
+    } else {
+      this.props.actions.getOrders(this.props.auth.user.id);
+    }
   }
 
   getOrderById = () => {
     const { orders } = this.props;
-    const orderId = parseInt(this.props.orderId, 10);
-    if (!orders.orders) return null;
-    return orders.orders.find((order) => order.id === orderId);
+    if (!orders || !orders.orders || !Array.isArray(orders.orders)) return null;
+    
+    const orderIdParam = this.props.orderId;
+    if (!orderIdParam) return null;
+    
+    // Order ID'yi hem string hem number olarak kontrol et
+    const foundOrder = orders.orders.find(
+      (order) => {
+        if (!order || !order.id) return false;
+        // Exact match
+        if (order.id === orderIdParam) return true;
+        // Number comparison
+        const orderIdNum = Number(order.id);
+        const paramIdNum = Number(orderIdParam);
+        if (!isNaN(orderIdNum) && !isNaN(paramIdNum) && orderIdNum === paramIdNum) return true;
+        // String comparison
+        if (String(order.id) === String(orderIdParam)) return true;
+        return false;
+      }
+    );
+    
+    return foundOrder || null;
   };
 
   formatDate = (dateString) => {
@@ -89,7 +113,7 @@ class OrderDetail extends Component {
       );
     }
 
-    if (order.userId !== auth.user.id && auth.user.role !== "admin") {
+    if (auth.user && order.userId !== auth.user.id && auth.user.role !== "admin") {
       return (
         <div style={{ padding: "4rem 2rem", textAlign: "center" }}>
           <h2 style={{ fontSize: "2rem", fontWeight: "300", marginBottom: "1rem" }}>

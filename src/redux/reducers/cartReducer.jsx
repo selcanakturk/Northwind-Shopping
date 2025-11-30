@@ -38,7 +38,7 @@ export default function cartReducer(state = initialState.cart, action) {
         (cartItem) => cartItem.product.id !== action.payload.id
       );
       saveCartToStorage(newState);
-      return newState;
+        return newState;
     }
 
     case actionTypes.UPDATE_CART_QUANTITY: {
@@ -57,7 +57,7 @@ export default function cartReducer(state = initialState.cart, action) {
       }
       saveCartToStorage(newState);
       return newState;
-    }
+      }
 
     default:
       return state;
