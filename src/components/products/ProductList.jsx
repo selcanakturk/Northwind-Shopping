@@ -6,6 +6,8 @@ import * as productActions from "../../redux/actions/productActions.jsx";
 import * as cartActions from "../../redux/actions/cartActions.jsx";
 import alertify from "alertifyjs";
 import { Link } from "react-router-dom";
+import LoadingSpinner from "../common/LoadingSpinner.jsx";
+import ErrorMessage from "../common/ErrorMessage.jsx";
 
 class ProductList extends Component {
   constructor(props) {
@@ -121,24 +123,15 @@ class ProductList extends Component {
     const filteredProducts = this.getFilteredAndSortedProducts();
 
     if (isLoading) {
-      return (
-        <div className="text-center py-5">
-          <div className="modern-spinner mx-auto"></div>
-          <p className="mt-3" style={{ color: "var(--text-secondary)" }}>
-            Loading products...
-          </p>
-        </div>
-      );
+      return <LoadingSpinner text="Loading products..." />;
     }
 
     if (error) {
       return (
-        <div className="modern-card p-4">
-          <div className="alert alert-danger" role="alert">
-            <h4 className="alert-heading">Hata!</h4>
-            <p>{error}</p>
-          </div>
-        </div>
+        <ErrorMessage
+          message={error || "Failed to load products. Please try again."}
+          onRetry={() => this.props.actions.getProducts()}
+        />
       );
     }
 

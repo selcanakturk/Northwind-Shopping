@@ -8,6 +8,7 @@ import * as cartActions from "../../redux/actions/cartActions.jsx";
 import * as favoriteActions from "../../redux/actions/favoriteActions.jsx";
 import * as reviewActions from "../../redux/actions/reviewActions.jsx";
 import alertify from "alertifyjs";
+import LoadingSpinner from "../common/LoadingSpinner.jsx";
 
 function ProductDetailWrapper(props) {
   const { productId } = useParams();
@@ -182,14 +183,7 @@ class ProductDetail extends Component {
     const isLoading = this.props.products?.loading || false;
 
     if (isLoading) {
-      return (
-        <div className="text-center py-5">
-          <div className="modern-spinner mx-auto"></div>
-          <p className="mt-3" style={{ color: "var(--text-secondary)" }}>
-            Loading product...
-          </p>
-        </div>
-      );
+      return <LoadingSpinner text="Loading product..." />;
     }
 
     if (!product) {
@@ -229,7 +223,7 @@ class ProductDetail extends Component {
 
     const stockStatus = getStockStatus(product.unitsInStock || 0);
 
-    return (
+  return (
       <div style={{ padding: "3rem 0" }}>
         <div style={{ marginBottom: "2rem" }}>
           <Link
@@ -724,7 +718,7 @@ class ProductDetail extends Component {
                               >
                                 ★
                               </span>
-                            </button>
+      </button>
                           ))}
                           {this.state.reviewRating > 0 && (
                             <span

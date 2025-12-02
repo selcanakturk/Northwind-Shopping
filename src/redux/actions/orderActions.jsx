@@ -50,10 +50,16 @@ export function createOrder(orderData) {
 }
 
 export function getOrders(userId = null) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const auth = getState().authReducer;
     const orders = loadOrdersFromStorage();
+    
+    if (auth.user && auth.user.role === "admin") {
+      dispatch({ type: actionTypes.GET_ORDERS_SUCCESS, payload: orders });
+      return orders;
+    }
+    
     let filteredOrders = orders;
-
     if (userId) {
       filteredOrders = orders.filter((order) => order.userId === userId);
     }

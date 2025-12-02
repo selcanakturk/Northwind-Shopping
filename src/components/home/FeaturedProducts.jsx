@@ -6,6 +6,7 @@ import { bindActionCreators } from "redux";
 import * as productActions from "../../redux/actions/productActions.jsx";
 import * as cartActions from "../../redux/actions/cartActions.jsx";
 import alertify from "alertifyjs";
+import LoadingSpinner from "../common/LoadingSpinner.jsx";
 
 class FeaturedProducts extends Component {
   componentDidMount() {
@@ -56,11 +57,7 @@ class FeaturedProducts extends Component {
     const isLoading = this.props.products?.loading || false;
 
     if (isLoading) {
-      return (
-        <div className="text-center py-5">
-          <div className="modern-spinner mx-auto"></div>
-        </div>
-      );
+      return <LoadingSpinner size="small" text="" />;
     }
 
     if (!featuredProducts || featuredProducts.length === 0) {

@@ -11,9 +11,27 @@ const loadCartFromStorage = () => {
   }
 };
 
+const getUserId = () => {
+  try {
+    const userStr = localStorage.getItem("currentUser");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      return user?.id || null;
+    }
+  } catch (err) {
+    console.error("User ID yüklenirken hata oluştu:", err);
+  }
+  return null;
+};
+
 const loadFavoritesFromStorage = () => {
   try {
-    const serializedFavorites = localStorage.getItem("favorites");
+    const userId = getUserId();
+    if (!userId) {
+      return [];
+    }
+    const key = `favorites_${userId}`;
+    const serializedFavorites = localStorage.getItem(key);
     if (serializedFavorites === null) {
       return [];
     }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import * as categoryActions from "../../redux/actions/categoryActions.jsx";
@@ -14,34 +14,22 @@ function AddOrUpdateProduct({
 }) {
   const navigate = useNavigate();
   const { productId } = useParams();
-  const [product, setProduct] = useState({});
-  const [errors, setErrors] = useState({});
+  const previousProductIdRef = useRef(productId);
+  const previousProductsRef = useRef(products);
+  const isUserEditingRef = useRef(false);
 
-  function getProductById(products, productId) {
-    if (!products || !Array.isArray(products)) return null;
-    const id =
-      typeof productId === "string" ? parseInt(productId, 10) : productId;
-    return (
-      products.find((p) => {
+  const getInitialProduct = () => {
+    if (productId && products && products.length > 0) {
+      const id =
+        typeof productId === "string" ? parseInt(productId, 10) : productId;
+      const foundProduct = products.find((p) => {
         const productIdNum =
           typeof p.id === "string" ? parseInt(p.id, 10) : p.id;
         return productIdNum === id;
-      }) || null
-    );
-  }
+      });
 
-  useEffect(() => {
-    if (!categories || categories.length === 0) {
-      getCategories();
-    }
-    getProducts();
-  }, [categories, getCategories, getProducts]);
-
-  useEffect(() => {
-    if (productId && products && products.length > 0) {
-      const foundProduct = getProductById(products, productId);
       if (foundProduct) {
-        const processedProduct = {
+        return {
           ...foundProduct,
           unitPrice:
             typeof foundProduct.unitPrice === "string"
@@ -56,16 +44,57 @@ function AddOrUpdateProduct({
               ? parseInt(foundProduct.categoryId, 10)
               : foundProduct.categoryId,
         };
-        setProduct(processedProduct);
-      } else {
-        setProduct({});
       }
-    } else if (!productId) {
-      setProduct({});
+    }
+    return {};
+  };
+
+  const [product, setProduct] = useState(() => getInitialProduct());
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (!categories || categories.length === 0) {
+      getCategories();
+    }
+    getProducts();
+  }, [categories, getCategories, getProducts]);
+
+  useEffect(() => {
+    const currentProductId = productId || null;
+    const productIdChanged = currentProductId !== previousProductIdRef.current;
+    const productsChanged = previousProductsRef.current !== products;
+
+    if ((productIdChanged || productsChanged) && !isUserEditingRef.current) {
+      previousProductIdRef.current = currentProductId;
+      previousProductsRef.current = products;
+
+      const newProduct = getInitialProduct();
+      const shouldUpdate =
+        (productIdChanged &&
+          (product.id !== newProduct.id ||
+            (!product.id && Object.keys(newProduct).length > 0))) ||
+        (productsChanged &&
+          productId &&
+          product.id &&
+          !products.find((p) => {
+            const pId = typeof p.id === "string" ? parseInt(p.id, 10) : p.id;
+            const prodId =
+              typeof product.id === "string"
+                ? parseInt(product.id, 10)
+                : product.id;
+            return pId === prodId;
+          }));
+
+      if (shouldUpdate) {
+        setTimeout(() => {
+          setProduct(newProduct);
+        }, 0);
+      }
     }
   }, [productId, products]);
 
   function handleChange(event) {
+    isUserEditingRef.current = true;
     const { name, value } = event.target;
     let processedValue = value;
 
@@ -131,17 +160,18 @@ function AddOrUpdateProduct({
       const productToSave = { ...product };
 
       if (productToSave.id) {
-        productToSave.id = typeof productToSave.id === 'string'
-          ? parseInt(productToSave.id, 10)
-          : productToSave.id;
+        productToSave.id =
+          typeof productToSave.id === "string"
+            ? parseInt(productToSave.id, 10)
+            : productToSave.id;
       } else {
         if (products && products.length > 0) {
           const numericIds = products
-            .map(p => {
-              const id = typeof p.id === 'string' ? parseInt(p.id, 10) : p.id;
-              return typeof id === 'number' && !isNaN(id) ? id : 0;
+            .map((p) => {
+              const id = typeof p.id === "string" ? parseInt(p.id, 10) : p.id;
+              return typeof id === "number" && !isNaN(id) ? id : 0;
             })
-            .filter(id => id > 0);
+            .filter((id) => id > 0);
 
           const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
           productToSave.id = maxId + 1;
@@ -172,7 +202,8 @@ function AddOrUpdateProduct({
 }
 
 function mapStateToProps(state) {
-  const productsData = state.productListReducer?.data || state.productListReducer || [];
+  const productsData =
+    state.productListReducer?.data || state.productListReducer || [];
   return {
     products: Array.isArray(productsData) ? productsData : [],
     categories: state.categoryListReducer || [],

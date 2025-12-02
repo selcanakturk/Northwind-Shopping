@@ -1,7 +1,7 @@
 import * as actionTypes from "../actions/actionTypes.jsx";
 import initialState from "./initialState.jsx";
 
-const loadOrdersFromStorage = () => {
+const loadAllOrdersFromStorage = () => {
   try {
     const serializedOrders = localStorage.getItem("orders");
     if (serializedOrders === null) {
@@ -14,15 +14,59 @@ const loadOrdersFromStorage = () => {
   }
 };
 
+const saveAllOrdersToStorage = (orders) => {
+  try {
+    localStorage.setItem("orders", JSON.stringify(orders));
+  } catch (err) {
+    console.error("Orders kaydedilirken hata oluştu:", err);
+  }
+};
+
+const getUserId = () => {
+  try {
+    const userStr = localStorage.getItem("currentUser");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      return user?.id || null;
+    }
+  } catch (err) {
+    return null;
+  }
+  return null;
+};
+
+const getUserRole = () => {
+  try {
+    const userStr = localStorage.getItem("currentUser");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      return user?.role || null;
+    }
+  } catch (err) {
+    return null;
+  }
+  return null;
+};
+
+const getFilteredOrdersForUser = (allOrders) => {
+  const userRole = getUserRole();
+  if (userRole === "admin") {
+    return allOrders;
+  }
+  const userId = getUserId();
+  if (!userId) {
+    return [];
+  }
+  return allOrders.filter((order) => order.userId === userId);
+};
+
 export default function orderReducer(state = initialState.orders, action) {
-  const currentOrders = state.orders || loadOrdersFromStorage();
   switch (action.type) {
     case actionTypes.CREATE_ORDER_SUCCESS:
-      const newOrdersCreate = [...currentOrders, action.payload];
-      localStorage.setItem("orders", JSON.stringify(newOrdersCreate));
+      const allOrdersAfterCreate = loadAllOrdersFromStorage();
       return {
         ...state,
-        orders: newOrdersCreate,
+        orders: getFilteredOrdersForUser(allOrdersAfterCreate),
       };
     case actionTypes.GET_ORDERS_SUCCESS:
       const ordersToSet = Array.isArray(action.payload) ? action.payload : [];
@@ -31,37 +75,36 @@ export default function orderReducer(state = initialState.orders, action) {
         orders: ordersToSet,
       };
     case actionTypes.UPDATE_ORDER_STATUS_SUCCESS:
-      const newOrdersUpdate = currentOrders.map((order) =>
-        order && order.id === action.payload.id ? action.payload : order
-      );
-      localStorage.setItem("orders", JSON.stringify(newOrdersUpdate));
+      const allOrdersAfterUpdate = loadAllOrdersFromStorage();
       return {
         ...state,
-        orders: newOrdersUpdate,
+        orders: getFilteredOrdersForUser(allOrdersAfterUpdate),
       };
     case actionTypes.DELETE_ORDER_SUCCESS:
-      const newOrdersDelete = currentOrders.filter(
-        (order) => order && order.id !== action.payload
-      );
-      localStorage.setItem("orders", JSON.stringify(newOrdersDelete));
+      const allOrdersAfterDelete = loadAllOrdersFromStorage();
       return {
         ...state,
-        orders: newOrdersDelete,
+        orders: getFilteredOrdersForUser(allOrdersAfterDelete),
       };
     case actionTypes.ADD_ORDER_NOTE_SUCCESS:
-      const newOrdersNote = currentOrders.map((order) =>
-        order && order.id === action.payload.id ? action.payload : order
-      );
-      localStorage.setItem("orders", JSON.stringify(newOrdersNote));
+      const allOrdersAfterNote = loadAllOrdersFromStorage();
       return {
         ...state,
-        orders: newOrdersNote,
+        orders: getFilteredOrdersForUser(allOrdersAfterNote),
+      };
+    case actionTypes.LOGIN_SUCCESS:
+    case actionTypes.REGISTER_SUCCESS:
+      const allOrdersAfterAuth = loadAllOrdersFromStorage();
+      return {
+        ...state,
+        orders: getFilteredOrdersForUser(allOrdersAfterAuth),
+      };
+    case actionTypes.LOGOUT:
+      return {
+        ...state,
+        orders: [],
       };
     default:
-      return {
-        ...state,
-        orders: currentOrders,
-      };
+      return state;
   }
 }
-
